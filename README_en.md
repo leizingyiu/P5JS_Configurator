@@ -1,6 +1,7 @@
 # oPC - offline Processing Configurator
-At first, I just wrote this thing to download the things I have in <a href='https://openprocessing.org/user/150269/'>openprocessing</a>, and I can also use the <a href='https://github.com/msawired/OPC/'>OPC</a> slider locally.
-
+At first, I just wrote this thing to download the things I have in <a href='https://openprocessing.org/user/150269/'>openprocessing</a>, and I can also use the <a href='https://github.com/msawired/OPC/'>OPC</a> slider locally.  
+  
+Try it now: <a href="https://leizingyiu.github.io/oPC/index.html">https://leizingyiu.github.io/oPC/index.html</a>  
 <hr>
 
 ## Example
