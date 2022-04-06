@@ -1,3 +1,4 @@
+english: <a href="https://github.com/leizingyiu/oPC/blob/main/README_en.md">https://github.com/leizingyiu/oPC/blob/main/README_en.md</a>  
 # oPC - offline Processing Configurator
 最初只是为了把自己在 <a href='https://openprocessing.org/user/150269/'>openprocessing</a> 的东西，下载回来在本地也能用 <a href='https://github.com/msawired/OPC/'>OPC</a> 的滑块，就写了这个东西。
 
