@@ -1,7 +1,6 @@
-var opc, txt = '请在 loadTxt 加载文本文件', btnN = 0;
+var opc, txt = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) != -1 ? '请在 loadTxt 加载文本文件' : 'Please load the text file in loadTxt', btnN = 0;
 
 function preload() {
-
   opc = new oPC({
     displayBoo: true,
     updateWithUrlBoo: true,
@@ -24,9 +23,7 @@ function preload() {
   });
   opc.hr();
   opc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
-
   opc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
-
   opc.color('_color', '#fff');
   opc.input('txtInput', 'sth wanner say');
   opc.fileinput('loadTxt', (e) => {
@@ -36,7 +33,6 @@ function preload() {
       console.log(txt);
     });
   });
-
   opc.load(preset);
 }
 function setup() {
@@ -46,7 +42,6 @@ function setup() {
 function draw() {
 
   background(222);
-
   ['_slider', '_slider2', '_button', '_check_box', '_sel', '_radio', '_color', 'txtInput', 'txt'].map((n, idx) => {
     if (n == '_button') {
       let str = n + ' : ' + btnN;
@@ -61,7 +56,6 @@ function draw() {
         pop();
       }
     }
-
   });
 }
 function windowResized() {
