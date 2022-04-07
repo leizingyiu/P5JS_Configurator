@@ -1,7 +1,7 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/04/06 19:48:29"
+// Last modified: "2022/04/07 12:35:30"
 
-class oPC {
+class PC {
     constructor(settings = {
         updateWithCookieBoo: true,
         updateWithUrlBoo: true,
@@ -203,10 +203,10 @@ margin:0;
             this.toJson();
         })
 
-        // 讲变量值固定到 oPC 的设置脚本
+        // 讲变量值固定到 PC 的设置脚本
         let renewBtn = createButton('renew');
         renewBtn.mousePressed(_ => {
-            let name = prompt('请填写变量名称', 'OPC');
+            let name = prompt('请填写变量名称', 'pc');
             this.renew(name);
         });
 
@@ -604,7 +604,7 @@ margin:0;
         return result;
     }
     renew(varname) {
-        let result = `var ${varname} ; \n${varname}=new oPC(${this.displayBoo});\n`;
+        let result = `var ${varname} ; \n${varname}=new PC(${this.displayBoo});\n`;
         // let varArray = {};
         // console.log(this.objArgs);
 

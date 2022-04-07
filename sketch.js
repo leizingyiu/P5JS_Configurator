@@ -1,7 +1,7 @@
-var opc, txt = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) != -1 ? '请在 loadTxt 加载文本文件' : 'Please load the text file in loadTxt', btnN = 0;
+var pc, txt = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) != -1 ? '请在 loadTxt 加载文本文件' : 'Please load the text file in loadTxt', btnN = 0;
 
 function preload() {
-  opc = new oPC({
+  pc = new PC({
     displayBoo: true,
     updateWithUrlBoo: true,
     updateWithCookieBoo: true,
@@ -11,30 +11,32 @@ function preload() {
     '_slider': 99, '_sel': 'sel c', '_radio': 'radio b', '_color': '#ffaa00'
   };
 
-  opc.slider('_slider', 20, 0, 100, 1);
-  opc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e); });
-  opc.button('_button', 'btnText', () => {
+  pc.slider('_slider', 20, 0, 100, 1);
+  pc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e); });
+  pc.button('_button', 'btnText', () => {
     btnN++;
     console.log('button clicked');
   });
 
-  opc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {
+  pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {
     console.log('box clicked');
   });
-  opc.hr();
-  opc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
-  opc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
-  opc.color('_color', '#fff');
-  opc.input('txtInput', 'sth wanner say');
-  opc.fileinput('loadTxt', (e) => {
+  pc.hr();
+  pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
+  pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
+  pc.color('_color', '#fff');
+  pc.input('txtInput', 'sth wanner say');
+  pc.fileinput('loadTxt', (e) => {
     console.log(e.data);
     let l = loadStrings(e.data, (arr) => {
       txt = arr.join('\n');
       console.log(txt);
     });
   });
-  opc.load(preset);
+  pc.load(preset);
 }
+
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
 }

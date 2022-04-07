@@ -1,13 +1,13 @@
-# oPC - offline Processing Configurator
+# PC - P5JS Ctrler
 At first, I just wrote this thing to download the things I have in <a href='https://openprocessing.org/user/150269/'>openprocessing</a>, and I can also use the <a href='https://github.com/msawired/OPC/'>OPC</a> slider locally.  
   
-Try it now: <a href="https://leizingyiu.github.io/oPC/index.html">https://leizingyiu.github.io/oPC/index.html</a>  
+Try it now: <a href="https://leizingyiu.github.io/PC/index.html">https://leizingyiu.github.io/PC/index.html</a>  
 <hr>
 
 ## Example
 ```javascript
- var opc,btnN=0,txt='';
- opc = new oPC({
+ var p c,btnN=0,txt='';
+ pc = new PC({
     displayBoo: true,
     updateWithUrlBoo: true,
     updateWithCookieBoo: true,
@@ -17,24 +17,24 @@ Try it now: <a href="https://leizingyiu.github.io/oPC/index.html">https://leizin
     '_slider': 99, '_sel': 'sel c', '_radio': 'radio b', '_color': '#ffaa00'
   };
 
-  opc.slider('_slider', 20, 0, 100, 1);
-  opc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e); });
-  opc.button('_button', 'btnText', () => {
+  pc.slider('_slider', 20, 0, 100, 1);
+  pc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e); });
+  pc.button('_button', 'btnText', () => {
     btnN++;
     console.log('button clicked');
   });
 
-  opc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {
+  pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {
     console.log('box clicked');
   });
-  opc.hr();
-  opc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
+  pc.hr();
+  pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
 
-  opc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
+  pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
 
-  opc.color('_color', '#fff');
-  opc.input('txtInput', 'sth wanner say');
-  opc.fileinput('loadTxt', (e) => {
+  pc.color('_color', '#fff');
+  pc.input('txtInput', 'sth wanner say');
+  pc.fileinput('loadTxt', (e) => {
     console.log(e.data);
     let l = loadStrings(e.data, (arr) => {
       txt = arr.join('\n');
@@ -42,13 +42,13 @@ Try it now: <a href="https://leizingyiu.github.io/oPC/index.html">https://leizin
     });
   });
 
-  opc.load(preset);
+  pc.load(preset);
 ```
 <hr>
 
 ##  Initialization
 ``` javascript
-  opc = new oPC({
+  pc = new PC({
     displayBoo: true,
     updateWithUrlBoo: true,
     updateWithCookieBoo: true,
@@ -72,38 +72,38 @@ Whether to show tool buttons
 ## Feature
 ### Slider 
 ```javascript
-opc.slider(name, defaultVal, minVal = 0, maxVal = 2 * defaultVal, precision = defaultVal / 10, fxn = () => { })
+pc.slider(name, defaultVal, minVal = 0, maxVal = 2 * defaultVal, precision = defaultVal / 10, fxn = () => { })
 ```
 
 #### Example
 ```javascript
-opc = new oPC();
-opc.slider('_slider', 20);
-opc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e)});
+pc = new PC();
+pc.slider('_slider', 20);
+pc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e)});
 ```
 
 <hr>
 
 ### Button
 ```javascript
-opc.button(name, btnText, fxn = () => { })
+pc.button(name, btnText, fxn = () => { })
 ```
 #### Example
 ```javascript
-opc = new oPC();
-opc.button('_button', 'btnText', () => { console.log('button clicked'); });
+pc = new PC();
+pc.button('_button', 'btnText', () => { console.log('button clicked'); });
 ```
 <hr>
 
 ### Checkbox
 ```javascript
-opc.opc.checkbox(name, defaultVal = false, labelText = ['yes', 'no'], fxn = () => { })
+pc.pc.checkbox(name, defaultVal = false, labelText = ['yes', 'no'], fxn = () => { })
 ```
 
 #### Example
 ```javascript
-opc = new oPC();
-opc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {console.log('box clicked'); });
+pc = new PC();
+pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {console.log('box clicked'); });
 ```
 <hr>
 
@@ -113,52 +113,52 @@ select(name, options = [], fxn = () => { })
 ```
 #### Example
 ```javascript
-opc = new oPC();
-opc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
+pc = new PC();
+pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
 ```
 <hr>
 
 ### Radio
 ```javascript
-opc.radio(name, options = [], fxn = () => { }) 
+pc.radio(name, options = [], fxn = () => { }) 
 ```
 #### Example
 ```javascript
-opc = new oPC();
-opc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
+pc = new PC();
+pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
 ```
 <hr>
 
 ### Color
 ```javascript
-opc.color(name, defaultVal = '#369') 
+pc.color(name, defaultVal = '#369') 
 ```
 #### Example
 ```javascript
-opc = new oPC();
-opc.color('_color', '#fff');
+pc = new PC();
+pc.color('_color', '#fff');
 ```
 <hr>
 
 ### Text input
 ```javascript
-opc.input(name, defaultVal = '', fxn = () => { }) 
+pc.input(name, defaultVal = '', fxn = () => { }) 
 ```
 #### Example
 ```javascript
-opc = new oPC();
-opc.input('txtInput', 'sth wanner say');
+pc = new PC();
+pc.input('txtInput', 'sth wanner say');
 ```
 <hr>
 
 ### File input
 ```javascript
-opc.fileinput(name, fxn = () => { }) 
+pc.fileinput(name, fxn = () => { }) 
 ```
 #### Example
 ```javascript
-opc = new oPC();
-opc.fileinput('loadTxt', (e) => {
+pc = new PC();
+pc.fileinput('loadTxt', (e) => {
     console.log(e.data);
     let l = loadStrings(e.data, (arr) => {
         txt = arr.join('\n');
@@ -170,18 +170,18 @@ opc.fileinput('loadTxt', (e) => {
 
 ### horizontal line
 ```javascript
-opc.hr()
+pc.hr()
 ```
 #### Example
 ```javascript
-opc = new oPC();
-opc.hr();
+pc = new PC();
+pc.hr();
 ```
 <hr>
 
 ## Tool buttons
 ### var
-Generate var statements to keep parameters out of oPC use.
+Generate var statements to keep parameters out of PC use.
 
 ### toJson
 Generate json . Multiple sets of json parameters can be generated and loaded through load().
@@ -189,14 +189,14 @@ Generate json . Multiple sets of json parameters can be generated and loaded thr
 #### Example
 ```javascript
 preset=[{'slider':1,'boo':true},{'slider':2,'boo':false}][Math.random()>0.5?0:1];
-opc = new oPC();
-opc.slider('slider',0);
-opc.checkbox('boo',false);
-opc.load(preset);
+pc = new PC();
+pc.slider('slider',0);
+pc.checkbox('boo',false);
+pc.load(preset);
 ```
 
 ### renew
-Regenerates new oPC and subsequent set statements based on the current parameters
+Regenerates new PC and subsequent set statements based on the current parameters
 
 ### reset
 Reset all parameters, return the parameters to the settings in the code, and clear the parameters in the address bar
