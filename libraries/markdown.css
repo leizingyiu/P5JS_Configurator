@@ -199,10 +199,12 @@ margin-bottom:1em!important;
 }
 .markdown-body pre{
   word-wrap: break-word;
+  white-space: pre-wrap;
   padding:1em;  
 }
 .markdown-body pre code{
   line-height: 1.75em;
+  white-space: pre-wrap;
 }
 
 @media screen and (min-width: 914px) {

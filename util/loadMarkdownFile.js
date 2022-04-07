@@ -1,8 +1,9 @@
 function loadMarkdownFile() {
+    console.trace();
 
     /* 加载写人 markdown 文件 */
     [...document.querySelectorAll(".markdown-body")].map(function (dom) {
-        fetch(dom.getAttribute("data-mdFile")).then(function (response) {
+        fetch(dom.getAttribute("data-mdfile")).then(function (response) {
             return response.text();
         }).then(function (r) {
             dom.innerHTML = marked.marked(r);
@@ -54,4 +55,15 @@ function loadMarkdownFile() {
     arg.map(a => a());
 }
 
-loadMarkdownFile();
+window.onload = () => {
+    let p = document.createElement('p');
+    p.id = 'readme',
+        p.classList.add('markdown-body'),
+        p.setAttribute('data-mdfile',
+            ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) == -1 ?
+                './README_en.md' :
+                './README.md'
+        );
+    document.body.insertBefore(p, document.body.children[0]);
+    loadMarkdownFile();
+}

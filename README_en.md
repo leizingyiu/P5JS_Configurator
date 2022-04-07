@@ -1,7 +1,18 @@
-# PC - P5JS Ctrler
-At first, I just wrote this thing to download the things I have in <a href='https://openprocessing.org/user/150269/'>openprocessing</a>, and I can also use the <a href='https://github.com/msawired/OPC/'>OPC</a> slider locally.  
+# PC - p5js Ctrler
+A plugin that can manipulate code variables in real time while p5js is running.
   
-Try it now: <a href="https://leizingyiu.github.io/PC/index.html">https://leizingyiu.github.io/PC/index.html</a>  
+Take a look: <https://leizingyiu.github.io/p5js_Ctrler/index.html>  
+  
+Try it now: <https://openprocessing.org/sketch/1537105> 
+  
+## Catalog
+[Example](#example)  
+[Initialization](#initialization)  
+[Feature](#feature)  
+[Tool buttons](#tool-buttons)  
+[Citations and thanks](#citations-and-thanks)
+  
+
 <hr>
 
 ## Example
@@ -48,25 +59,28 @@ Try it now: <a href="https://leizingyiu.github.io/PC/index.html">https://leizing
 
 ##  Initialization
 ``` javascript
-  pc = new PC({
+pc = new PC({
     displayBoo: true,
+    // Whether to display the setting box, 
+    // if set false, it will not be displayed   
+
     updateWithUrlBoo: true,
+    // Whether to update the URL search parameter synchronously, 
+    // and read the URL search during initialization   
+
     updateWithCookieBoo: true,
+    // Whether to update the cookie synchronously, 
+    // and read the cookie during initialization   
+
     autoHide: true,
+    // Whether to automatically hide 
+
     showToolsBoo: true,
+    // Whether to show tool buttons 
+
   });
 ```
 
-#### displayBoo 
-Whether to display the setting box, if set false, it will not be displayed   
-#### updateWithUrlBoo 
-Whether to update the URL search parameter synchronously, and read the URL search during initialization   
-#### updateWithCookieBoo 
-Whether to update the cookie synchronously, and read the cookie during initialization   
-#### autoHide 
-Whether to automatically hide 
-#### showToolsBoo
-Whether to show tool buttons 
 <hr>
 
 ## Feature
@@ -75,7 +89,7 @@ Whether to show tool buttons
 pc.slider(name, defaultVal, minVal = 0, maxVal = 2 * defaultVal, precision = defaultVal / 10, fxn = () => { })
 ```
 
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.slider('_slider', 20);
@@ -88,7 +102,7 @@ pc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e)});
 ```javascript
 pc.button(name, btnText, fxn = () => { })
 ```
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.button('_button', 'btnText', () => { console.log('button clicked'); });
@@ -100,7 +114,7 @@ pc.button('_button', 'btnText', () => { console.log('button clicked'); });
 pc.pc.checkbox(name, defaultVal = false, labelText = ['yes', 'no'], fxn = () => { })
 ```
 
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {console.log('box clicked'); });
@@ -111,7 +125,7 @@ pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {console.log('box clic
 ```javascript
 select(name, options = [], fxn = () => { })
 ```
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
@@ -122,7 +136,7 @@ pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
 ```javascript
 pc.radio(name, options = [], fxn = () => { }) 
 ```
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
@@ -133,7 +147,7 @@ pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
 ```javascript
 pc.color(name, defaultVal = '#369') 
 ```
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.color('_color', '#fff');
@@ -144,7 +158,7 @@ pc.color('_color', '#fff');
 ```javascript
 pc.input(name, defaultVal = '', fxn = () => { }) 
 ```
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.input('txtInput', 'sth wanner say');
@@ -155,7 +169,7 @@ pc.input('txtInput', 'sth wanner say');
 ```javascript
 pc.fileinput(name, fxn = () => { }) 
 ```
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.fileinput('loadTxt', (e) => {
@@ -172,7 +186,7 @@ pc.fileinput('loadTxt', (e) => {
 ```javascript
 pc.hr()
 ```
-#### Example
+##### example
 ```javascript
 pc = new PC();
 pc.hr();
@@ -186,7 +200,7 @@ Generate var statements to keep parameters out of PC use.
 ### toJson
 Generate json . Multiple sets of json parameters can be generated and loaded through load().
 
-#### Example
+##### example
 ```javascript
 preset=[{'slider':1,'boo':true},{'slider':2,'boo':false}][Math.random()>0.5?0:1];
 pc = new PC();
@@ -202,4 +216,38 @@ Regenerates new PC and subsequent set statements based on the current parameters
 Reset all parameters, return the parameters to the settings in the code, and clear the parameters in the address bar
 
 ### generaUrl
-Update the current parameters to the URL to share URLs with parameters
+Update the current parameters to the URL to share URLs with parameters  
+
+## Citations and thanks
+This project was originally just for the purpose of downloading the things that I have in <a href='https://openprocessing.org/user/150269/'>openprocessing</a> and using it locally <a href='https:/ Slider for /github.com/msawred/OPC/'>OPC</a>.  
+It can be said that this project was based on OPC references at the time and extended. Thanks to OPC author <a href='https://github.com/msawired'>Sinan Ascioglu</a>.  
+When the sketch is downloaded from openprocessing, just declare the variable OPC at the beginning and initialize your own p5js_Ctrler in preload, and you can continue to use the slider. As in the comments section below:  
+```javascript
+// https://openprocessing.org/sketch/1414246
+// let OPC;
+function preload() {
+	// OPC = new PC();
+	OPC.slider('c1', 10, 0, 255);
+	OPC.slider('c2', 100, 0, 255);
+	// OPC.hr();
+	OPC.slider('sizeMin', 1, 0, 200, 0.1);
+	OPC.slider('sizeStep', 2, 0, 100, 1);
+	OPC.slider('sizeMax', 10, 0, 600, 0.1);
+	// OPC.hr();
+	OPC.slider('posSteps', 10, 0, 100, 1);
+}
+```  
+
+The drag and drop function refers to the case of runoob.com: <https://c.runoob.com/codedemo/5370/>
+
+For the part that converts name into variable name, refer to the OPC source code: <https://github.com/msawired/OPC/blob/61287403522196ea6c0354a3e3850bc4c853d0b9/opc.js>
+  
+Thanks to the friends of Youshe for helping with the copywriting
+Thanks to the group owners and friends of processing.love for their technical help
+  
+If you find any problems, please correct them in time, thank you!
+
+<hr>
+
+// 本英文说明是机翻，如果有词不达意的地方，请务必指正，谢谢！  
+// This English description is translated by machine. If there is anything wrong with the words, please correct me, thank you!

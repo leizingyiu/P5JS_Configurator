@@ -1,8 +1,18 @@
-english: <a href="https://github.com/leizingyiu/PC/blob/main/README_en.md">https://github.com/leizingyiu/PC/blob/main/README_en.md</a>  
-# PC - P5JS Ctrler
-最初只是为了把自己在 <a href='https://openprocessing.org/user/150269/'>openprocessing</a> 的东西，下载回来在本地也能用 <a href='https://github.com/msawired/OPC/'>OPC</a> 的滑块，就写了这个东西。
+english : <https://github.com/leizingyiu/p5js_Ctrler/blob/main/README_en.md>  
+# PC - p5js Ctrler
+一个可以在 p5js 运行时，实时操控代码变量的插件。  
+    
+查看效果：<https://leizingyiu.github.io/p5js_Ctrler/index.html>    
 
-马上试试：<a href="https://leizingyiu.github.io/PC/index.html">https://leizingyiu.github.io/PC/index.html</a>
+马上试试：<https://openprocessing.org/sketch/1537105>  
+  
+## 目录  
+- [示例](#示例)  
+- [初始化](#初始化)  
+- [功能](#功能)  
+- [工具按钮](#工具按钮)  
+- [引用及感谢](#引用及感谢)  
+  
 <hr>
 
 ## 示例
@@ -51,23 +61,23 @@ english: <a href="https://github.com/leizingyiu/PC/blob/main/README_en.md">https
 ``` javascript
   pc = new PC({
     displayBoo: true,
+    //是否显示设置框，如设置 false 则不显示   
+
     updateWithUrlBoo: true,
+    //是否同步更新网址search参数，并且初始化时读取网址search   
+
     updateWithCookieBoo: true,
+    //是否同步更新cookie，并且初始化时读取cookie
+
     autoHide: true,
+    //是否自动隐藏 
+
     showToolsBoo: true,
+    //是否显示工具按钮
+
   });
 ```
 
-#### displayBoo 
-是否显示设置框，如设置 false 则不显示   
-#### updateWithUrlBoo 
-是否同步更新网址search参数，并且初始化时读取网址search   
-#### updateWithCookieBoo 
-是否同步更新cookie，并且初始化时读取cookie   
-#### autoHide 
-是否自动隐藏 
-#### showToolsBoo
-是否显示工具按钮  
 <hr>
 
 ## 功能
@@ -204,3 +214,35 @@ pc.load(preset);
 
 ### generaUrl
 将当前参数更新到网址中，以便分享带参数的网址
+
+<hr> 
+
+## 引用及感谢
+
+这个项目最初只是为了把自己在 <a href='https://openprocessing.org/user/150269/'>openprocessing</a> 的东西，下载回来在本地也能用 <a href='https://github.com/msawired/OPC/'>OPC</a> 的滑块。  
+可以说，这个项目当时是基于 OPC 的参考，并进行延伸。感谢 OPC 作者 <a href='https://github.com/msawired'>Sinan Ascioglu</a>。    
+当 sketch 从 openprocessing 下载下来后，只需在开头声明变量 OPC 、 在 preload 中先初始化自己的 p5js_Ctrler ，就可以继续使用滑块。如下面的注释部分：
+```javascript
+// https://openprocessing.org/sketch/1414246
+// let OPC;
+function preload() {
+	// OPC = new PC();
+	OPC.slider('c1', 10, 0, 255);
+	OPC.slider('c2', 100, 0, 255);
+	// OPC.hr();
+	OPC.slider('sizeMin', 1, 0, 200, 0.1);
+	OPC.slider('sizeStep', 2, 0, 100, 1);
+	OPC.slider('sizeMax', 10, 0, 600, 0.1);
+	// OPC.hr();
+	OPC.slider('posSteps', 10, 0, 100, 1);
+}
+```
+
+其中拖拽功能参考 runoob.com 的案例：<https://c.runoob.com/codedemo/5370/>  
+
+其中将 name 转换成变量名称的部分，参考 OPC 源码：<https://github.com/msawired/OPC/blob/61287403522196ea6c0354a3e3850bc4c853d0b9/opc.js>
+  
+感谢优设的小伙伴为文案提供帮助  
+感谢 processing.love 的群主及群友，在技术上提供的帮助
+  
+如发现问题，请及时提出指正，感谢！

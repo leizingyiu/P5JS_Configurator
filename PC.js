@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/04/07 12:35:30"
+// Last modified: "2022/04/07 14:59:20"
 
 class PC {
     constructor(settings = {
@@ -264,7 +264,8 @@ margin:0;
         this.objArgs[name] = [...args];
     }
     bindCtrler(name) {
-        let that = this; {
+        let that = this;
+        {
             Object.defineProperty(window, name, {
                 get: function () {
                     return that.getCtrlerVal(name);
@@ -369,12 +370,20 @@ margin:0;
     }
 
 
-    slider(name, defaultVal, minVal = 0, maxVal = 2 * defaultVal, precision = defaultVal / 10, fxn = () => { }) {
-        if (defaultVal == 0) {
-            minVal = 0,
-                maxVal = 10,
-                precision = 1;
+    slider(name = 'p5js_ctrler_slider', defaultVal = 1, minVal = Math.min(0, defaultVal), maxVal = 2 * Math.max(minVal, defaultVal, 1), precision = Math.max(maxVal, defaultVal, 1) / 10, fxn = () => { }) {
+        switch (true) {
+            case maxVal < minVal:
+                throw (`" slider(${arguments}) " -----
+slider(name, defaultVal, minVal, maxVal, precision, fxn = () => { })
+maxVal need to bigger than minVal`);
+                break;
+            case [defaultVal, minVal, maxVal, precision].some(v => typeof v != 'number') == true:
+                throw (`" slider(${arguments}) " -----
+slider(name, defaultVal, minVal, maxVal, precision, fxn = () => { })
+defaultVal, minVal, maxVal, precision need number`);
+                break;
         }
+
         this.recordArgs(...arguments);
         this.ctrlers[name] = createSlider(minVal, maxVal, defaultVal, precision);
         this.ctrlers[name].style('width', `${this.ctrlerWidth}px`);
@@ -384,7 +393,7 @@ margin:0;
         return this.ctrlers[name];
     }
 
-    button(name, btnText, fxn = () => { }) {
+    button(name = 'p5js_ctrler_btn', btnText = 'btn', fxn = () => { }) {
         this.recordArgs(...arguments);
         this.ctrlers[name] = createButton(btnText);
         this.ctrlers[name].mousePressed(fxn);
@@ -393,7 +402,7 @@ margin:0;
         return this.ctrlers[name];
     }
 
-    checkbox(name, defaultVal = false, labelText = ['yes', 'no'], fxn = () => { }) {
+    checkbox(name = 'p5js_ctrler_checkbox', defaultVal = false, labelText = ['yes', 'no'], fxn = () => { }) {
         this.recordArgs(...arguments);
         this.ctrlers[name] = createCheckbox(name, defaultVal);
         this.ctrlers[name].labelText = {
@@ -415,7 +424,7 @@ margin:0;
         return this.ctrlers[name];
     }
 
-    select(name, options = [], fxn = () => { }) {
+    select(name = 'p5js_ctrler_select', options = [], fxn = () => { }) {
         this.recordArgs(...arguments);
         this.ctrlers[name] = createSelect(name);
         options.map(o => {
@@ -427,7 +436,7 @@ margin:0;
         return this.ctrlers[name];
     }
 
-    radio(name, options = [], fxn = () => { }) {
+    radio(name = 'p5js_ctrler_radio', options = [], fxn = () => { }) {
         this.recordArgs(...arguments);
         this.ctrlers[name] = createRadio(name);
         options.map(o => {
@@ -442,7 +451,7 @@ margin:0;
         return this.ctrlers[name];
     }
 
-    color(name, defaultVal = '#369') {
+    color(name = 'p5js_ctrler_color', defaultVal = '#369') {
         this.recordArgs(...arguments);
         this.ctrlers[name] = createColorPicker(defaultVal);
         this.ctrlers[name].type = 'color';
@@ -450,7 +459,7 @@ margin:0;
         return this.ctrlers[name];
     }
 
-    input(name, defaultVal = '', fxn = () => { }) {
+    input(name = 'p5js_ctrler_input', defaultVal = '', fxn = () => { }) {
         this.recordArgs(...arguments);
         this.ctrlers[name] = createInput(defaultVal);
         this.ctrlers[name].type = 'input';
@@ -459,7 +468,7 @@ margin:0;
         return this.ctrlers[name];
     }
 
-    fileinput(name, fxn = () => { }) {
+    fileinput(name = "p5js_ctrler_fileinput", fxn = () => { }) {
         this.recordArgs(...arguments);
         this.ctrlers[name] = createFileInput(fxn);
         this.ctrlers[name].type = 'file';
@@ -472,7 +481,7 @@ margin:0;
         hr.parent(this.div);
     }
 
-    myReflect(obj, vari) {
+    yiu_Reflect(obj, vari) {
         return Object.keys(obj).filter(k => Object.is(obj[k], vari)).toString();
     }
 
@@ -585,7 +594,6 @@ margin:0;
         let result = '{';
         Object.keys(this.ctrlers).map((k, idx, arr) => {
             let v = this.getCtrlerVal(k);
-            // console.log('k:', k, ' v : ', v, ' : ', typeof v);
             if (v == '') {
                 return;
             }
@@ -599,14 +607,11 @@ margin:0;
             }
         });
         result = result.replace(/,/g, ',\n\t') + '}';
-        // console.log(result);
         this.copyStr(result);
         return result;
     }
     renew(varname) {
         let result = `var ${varname} ; \n${varname}=new PC(${this.displayBoo});\n`;
-        // let varArray = {};
-        // console.log(this.objArgs);
 
         Object.keys(this.ctrlers).map((k, idx, arr) => {
             let args = this.objArgs[k];
@@ -627,7 +632,7 @@ margin:0;
                         return a.toString();
                     } else {
                         try {
-                            let A = this.myReflect(window, a);
+                            let A = this.yiu_Reflect(window, a);
                             varArray[A] = String(a);
                             return A;
                         } catch (err) {
@@ -642,8 +647,7 @@ margin:0;
             result += `${varname}.${this.ctrlers[k].type}("${k}",${args.join(',')});\n`;
         });
 
-        // let varString = 'const ' + Object.keys(varArray).map(v => `${v}=${varArray[v]}`).join(',\n') + ';\n'
-        // result = varString + result;
+
         this.copyStr(result);
         return result;
     }
