@@ -28,7 +28,7 @@ function loadMarkdownFile() {
     });
 
     /* 把markdown.css 的选择器全部定位到内部的id上，提升优先级 */
-    fetch("./css/markdown.css").then(function (response) {
+    fetch("./style/markdown.css").then(function (response) {
         return response.text();
     }).then(function (r) {
         var style = document.createElement('style');
