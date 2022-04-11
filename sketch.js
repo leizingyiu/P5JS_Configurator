@@ -10,8 +10,8 @@ var pc,
 function preload() {
   pc = new PC({
     displayBoo: true,
-    updateWithUrlBoo: false,
-    updateWithCookieBoo: false,
+    updateWithUrlBoo: true,
+    updateWithCookieBoo: true,
     autoHide: true
   });
   preset = {
@@ -39,6 +39,8 @@ function preload() {
   pc.color('_color', '#fff');
   pc.input('txtInput', 'sth wanner say');
   pc.fileinput('loadTxt', (e) => {
+    console.log(e);
+    console.log(this, this.value);
     console.log(e.data);
     txt = e.data;
     loadStrings(e.data, (arr) => {
