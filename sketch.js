@@ -2,7 +2,7 @@
 // github:   https://github.com/leizingyiu/p5js_Ctrler
 
 var pc,
-  txt = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) != -1 ?
+  txtFileContent = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) != -1 ?
     '请在 loadTxt 加载文本文件' :
     'Please load the text file in loadTxt',
   btnN = 0;
@@ -42,10 +42,10 @@ function preload() {
     console.log(e);
     console.log(this, this.value);
     console.log(e.data);
-    txt = e.data;
+    txtFileContent = e.data;
     loadStrings(e.data, (arr) => {
-      txt = arr.join('\n');
-      console.log(txt);
+      txtFileContent = arr.join('\n');
+      console.log(txtFileContent);
     });
   });
   pc.textarea('txtareaTesting', 'this is a textarea ! ');
@@ -60,7 +60,8 @@ function setup() {
 function draw() {
 
   background(222);
-  ['_slider', '_slider2', '_button', '_check_box', '_sel', '_radio', '_color', 'txtInput', 'txt', 'txtareaTesting'].map((n, idx) => {
+  let varArr = ['_slider', '_slider2', '_button', '_check_box', '_sel', '_radio', '_color', 'txtInput', 'txtFileContent', 'txtareaTesting'];
+  varArr.map((n, idx) => {
     let str;
     if (n == '_button') {
       str = n + ' : ' + btnN;
@@ -76,6 +77,22 @@ function draw() {
       pop();
     }
   });
+
+  let t = `_slider = ${_slider},
+_slider2 = ${_slider2},
+_button = ${_button},
+_check_box = ${_check_box},
+_sel = ${_sel},
+_radio = ${_radio},
+_color = ${_color},
+txtInput = ${txtInput},
+txt = ${txtFileContent},
+txtareaTesting = ${txtareaTesting}
+`;
+
+  if (frameCount <= 1) {
+    console.log(t);
+  }
 }
 
 function windowResized() {
