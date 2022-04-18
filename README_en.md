@@ -165,6 +165,19 @@ pc.input('txtInput', 'sth wanner say');
 ```
 <hr>
 
+
+### Text area
+```javascript
+pc.textarea(name, defaultVal = '', fxn = () => { })
+```
+#### 示例
+```javascript
+pc = new PC();
+pc.textarea('textArea', 'a long long long long sentence');
+```
+<hr>
+
+
 ### File input
 ```javascript
 pc.fileinput(name, fxn = () => { }) 

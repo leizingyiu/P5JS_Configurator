@@ -75,6 +75,24 @@ english : <https://github.com/leizingyiu/p5js_Ctrler/blob/main/README_en.md>
     showToolsBoo: true,
     //是否显示工具按钮
 
+    text_color: '#000',
+    //文字颜色
+
+    main_color: '#0075ffcc',
+    //高亮颜色
+
+    bg_color: 'hsla( 0deg, 100%, 100%, 0.8)',
+    //背景颜色
+    
+    ctrler_width: 100,
+    //滑块控制器宽度
+    
+    font_size: 12,
+    //字体大小，单位为px
+    
+    line_height: '1.5em',
+    //行高，与css中设置一样
+
   });
 ```
 
@@ -151,7 +169,7 @@ pc.color('_color', '#fff');
 ```
 <hr>
 
-### 文本框
+### 输入框
 ```javascript
 pc.input(name, defaultVal = '', fxn = () => { }) 
 ```
@@ -159,6 +177,17 @@ pc.input(name, defaultVal = '', fxn = () => { })
 ```javascript
 pc = new PC();
 pc.input('txtInput', 'sth wanner say');
+```
+<hr>
+
+### 文本框
+```javascript
+pc.textarea(name, defaultVal = '', fxn = () => { })
+```
+#### 示例
+```javascript
+pc = new PC();
+pc.textarea('textArea', 'a long long long long sentence');
 ```
 <hr>
 
@@ -189,6 +218,47 @@ pc = new PC();
 pc.hr();
 ```
 <hr>
+
+
+
+### 刷新/赋值
+
+```javascript
+pc.update(name, value);
+```
+
+#### 示例
+```javascript
+pc = new PC();
+pc.slider('_slider', 0, -20, 20, 1, (e) => { console.log(e)});
+pc.update('_slider', 10);
+```
+
+### 启用 与 禁用
+```javascript
+pc.enable(name);
+pc.disable(name);
+```
+
+#### 示例
+```javascript
+pc = new PC();
+pc.slider('_slider', 0, -20, 20, 1, (e) => { console.log(e)});
+pc.disable('_slider');
+pc.enable('_slider');
+```
+
+### 调整(滑块控制器)范围
+```javascript
+pc.range(name, min, max);
+```
+
+#### 示例
+```javascript
+pc = new PC();
+pc.slider('_slider', 0, -20, 20, 1, (e) => { console.log(e)});
+pc.range('_slider', -100, 100);
+```
 
 ## 工具按钮
 ### var

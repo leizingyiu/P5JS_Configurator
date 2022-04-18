@@ -48,6 +48,7 @@ function preload() {
       console.log(txt);
     });
   });
+  pc.textarea('txtareaTesting', 'this is a textarea ! ');
   pc.load(preset);
 }
 
@@ -59,7 +60,7 @@ function setup() {
 function draw() {
 
   background(222);
-  ['_slider', '_slider2', '_button', '_check_box', '_sel', '_radio', '_color', 'txtInput', 'txt'].map((n, idx) => {
+  ['_slider', '_slider2', '_button', '_check_box', '_sel', '_radio', '_color', 'txtInput', 'txt', 'txtareaTesting'].map((n, idx) => {
     let str;
     if (n == '_button') {
       str = n + ' : ' + btnN;

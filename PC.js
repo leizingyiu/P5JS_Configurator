@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/04/11 19:54:54"
+// Last modified: "2022/04/18 17:08:02"
 
 class PC {
     constructor(settings = {
@@ -465,6 +465,17 @@ defaultVal, minVal, maxVal, precision need number`);
         this.ctrlers[name] = createInput(defaultVal);
         this.ctrlers[name].type = 'input';
         this.ctrlers[name].input(fxn);
+        this.#initCtrler(name);
+        return this.ctrlers[name];
+    }
+
+    textarea(name = "p5js_ctrler_textarea", defaultVal = '', fxn = () => { }) {
+        this.#recordArgs(...arguments);
+        this.ctrlers[name] = createElement('textarea', defaultVal);
+
+        this.ctrlers[name].type = 'textarea';
+        this.ctrlers[name].input(fxn);
+
         this.#initCtrler(name);
         return this.ctrlers[name];
     }
@@ -1025,9 +1036,11 @@ defaultVal, minVal, maxVal, precision need number`);
 
     }
 
-    #inputKitBeauty = () => {
+    #inputKitBeauty = function (styleInnerCSSText) {
+
         let style = document.createElement('style');
-        style.innerHTML = `
+        if (arguments.length == 0) {
+            style.innerHTML = `
         [id*=${this.name}] input {
             --input-unit-length: 1em;
             --input-main-color: #06f;
@@ -1140,6 +1153,9 @@ defaultVal, minVal, maxVal, precision need number`);
       
         
           `;
+        } else {
+            style.innerHTML = '';
+        }
         if (!document.querySelector(`[name=${this.name}]`)) {
             document.body.appendChild(style);
             style.setAttribute('name', this.name);
