@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/04/18 18:49:25"
+// Last modified: "2022/04/19 02:19:36"
 
 class PC {
     constructor(settings = {
@@ -269,7 +269,7 @@ class PC {
                         margin: 0.75em 0 0.5em;
                     }
 
-                    #${this.id} textarea{
+                    #${this.id} textarea,#${this.id} input[type='text']{
                         flex-grow:99;
                     }
 `;
@@ -456,10 +456,11 @@ defaultVal, minVal, maxVal, precision need number`);
         return this.ctrlers[name];
     }
 
-    color(name = 'p5js_ctrler_color', defaultVal = '#369') {
+    color(name = 'p5js_ctrler_color', defaultVal = '#369', fxn = () => { }) {
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createColorPicker(defaultVal);
         this.ctrlers[name].type = 'color';
+        this.ctrlers[name].input(fxn);
         this.#initCtrler(name);
         return this.ctrlers[name];
     }
@@ -478,10 +479,31 @@ defaultVal, minVal, maxVal, precision need number`);
         this.ctrlers[name] = createElement('textarea', defaultVal);
 
         this.ctrlers[name].type = 'textarea';
-        this.ctrlers[name].input(fxn);
-
+        this.ctrlers[name].changed(fxn);
+        this.ctrlers[name].input((e) => { this.#updateTextareaHeight(e.path[0]) });
         this.#initCtrler(name);
+        this.#updateTextareaHeight(this.ctrlers[name].elt);
         return this.ctrlers[name];
+    }
+    #updateTextareaHeight = (textareaElt) => {
+        let taStyle = getComputedStyle(textareaElt, null);
+
+        let div = document.createElement('div');
+        div.innerText = textareaElt.value;
+        let divStyleText = '';
+        ['font-size', 'margin', 'padding', 'line-height', 'white-space', 'font', 'font-family'].map(s => {
+            divStyleText += s + ':' + taStyle.getPropertyValue(s) + ';';
+        });
+
+        div.style.cssText = divStyleText;
+        div.style.width = textareaElt.clientWidth + 'px';
+        div.style.position = 'absolute';
+        div.style.top = 0, div.style.left = 0, div.style.wordBreak = 'break-all';
+
+        document.body.appendChild(div);
+        textareaElt.style.height = 'max(' + div.clientHeight + 'px , 2.5em )';
+        textareaElt.style.maxHeight = '80vh';
+        document.body.removeChild(div);
     }
 
     fileinput(name = "p5js_ctrler_fileinput", fxn = () => { }) {
@@ -660,6 +682,7 @@ defaultVal, minVal, maxVal, precision need number`);
             }
         })
     };
+
     #getValFromCookie = function (name) {
         let args = [];
         if (arguments.length == 0) {
