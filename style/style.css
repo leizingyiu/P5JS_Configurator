@@ -2,6 +2,8 @@ html,
 body {
   margin: 0;
   padding: 0;
+  background-color: #00000006;
+  font-family: "PingFang SC",miui,system-ui,-apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,sans-serif;
 }
 
 canvas {
@@ -11,7 +13,7 @@ canvas {
 #readme{
   margin: 0;
   max-height: 100vh;
-  max-width: 48vw;
+  max-width: 36vw;
   padding: 1em;
   overflow: scroll;
   position: fixed;
@@ -20,32 +22,3 @@ canvas {
   z-index: 0;
   background-color: #ffffff99;
 }
-
-
-/* #P5_Ctrler_by_leizingyiu {
-  position: absolute;
-  left: 1em;
-  bottom: 1em;
-  display: flex;
-  flex-direction: column;
-}
-
-#P5_Ctrler_by_leizingyiu * {
-  position: relative;
-  vertical-align: middle;
-
-}
-
-#P5_Ctrler_by_leizingyiu>div {
-  display: flex;
-  flex-direction: row;
-  margin-top: 0.5em;
-}
-
-#P5_Ctrler_by_leizingyiu>div>* {
-  margin-right: 1em;
-}
-
-#P5_Ctrler_by_leizingyiu>div>* * {
-  margin: auto 0.2em;
-} */

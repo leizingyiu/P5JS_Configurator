@@ -1,27 +1,28 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/04/19 02:19:36"
+// Last modified: "2022/04/26 23:03:31"
 
 class PC {
+
     constructor(settings = {
         updateWithCookieBoo: true,
         updateWithUrlBoo: true,
         displayBoo: true,
-        autoHide: true,
+        autoHideBoo: true,
         showToolsBoo: true,
         text_color: '#000',
         main_color: '#0075ffcc',
         bg_color: 'hsla( 0deg, 100%, 100%, 0.8)',
         ctrler_width: 80,
-        font_size: 12,
+        font_size: 10,
         line_height: '1.5em',
         checkbox_true_display: '✔',
         input_styling: false,
     }) {
-        let defaultSettings = {
+        const defaultSettings = {
             updateWithCookieBoo: true,
             updateWithUrlBoo: true,
             displayBoo: true,
-            autoHide: true,
+            autoHideBoo: true,
             showToolsBoo: true,
             text_color: '#000',
             main_color: '#0075ffcc',
@@ -39,9 +40,11 @@ class PC {
             }
         });
 
+        this.settings = settings;
+
         this.name = 'p5js_Ctrler';
         this.id = this.name;
-        let existedDom = document.querySelectorAll(`[id*=${this.id}]`);
+        const existedDom = document.querySelectorAll(`[id*=${this.id}]`);
         if (existedDom.length > 0) {
             existedDom = [...existedDom].filter(dom => ['inner', 'header'].every(n => dom.id.indexOf(n) == -1));
             this.id += '_' + existedDom.length;
@@ -49,28 +52,34 @@ class PC {
         this.activeClassName = 'active';
 
         this.textcolor = settings.text_color,
-            this.ctrlerwidth = settings.ctrler_width,
+            this.ctrlerwidth = Number(String(settings.ctrler_width).replace(/[^\d]/g, '')),
             this.fontsize = typeof settings.font_size == 'string' ? settings.font_size : settings.font_size + 'px',
             this.lineheight = typeof settings.line_height == 'string' ? settings.line_height : settings.line_height + 'px';
         this.bgcolor = settings.bg_color,
             this.maincolor = settings.main_color,
             this.checkboxtrue = settings.checkbox_true_display;
 
-        this.divs = {}, this.nameCol = {}, this.ctrlers = {}, this.valueCol = {}, this.objArgs = {}, this.nameColWidth = 0;
+        // 容器声明
+        this.ctrlerDivs = {}, this.nameCol = {}, this.ctrlers = {}, this.valueCol = {}, this.groups = {}, this.groupNames = {}, this.objArgs = {}, this.nameColWidth = 0;
+
+        this.#_parentTarget = this.ctrlersContainer;
 
         //设置外层容器
-        this.container = createDiv();
-        this.container.id(this.id);
-        this.container.elt.setAttribute('p5_Ctrler_by_leizingyiu', 'visit:leizingyiu.net', '');
+        this.mainContainer = createDiv();
+        this.mainContainer.id(this.id);
+        this.mainContainer.elt.setAttribute('p5_Ctrler_by_leizingyiu', 'visit:leizingyiu.net', '');
         this.displayBoo = settings.displayBoo;
         if (this.displayBoo == false) {
-            this.container.elt.style.display = 'none';
+            this.mainContainer.elt.style.display = 'none';
         }
 
         //设置内层容器
-        this.div = createDiv();
-        this.div.id(this.id + '_inner');
-        this.div.parent(this.container);
+        this.ctrlersContainer = createDiv();
+        this.ctrlersContainer.id(this.id + '_inner');
+        this.ctrlersContainer.parent(this.mainContainer);
+
+        // 初始化控制器和组的parent
+        this.#setParentTarget();
 
         // 设置是否从网址、cookie 加载 
         this.updateWithUrlBoo = settings.updateWithUrlBoo;
@@ -83,248 +92,419 @@ class PC {
         });
 
         //设置拖拽标签
-        let dragDiv = createDiv();
-        let dragP = createP(this.id);
+        const dragDiv = createDiv();
+        const dragP = createP(this.id);
         dragP.style('color:#fff');
         dragDiv.id(this.id + '_header');
-        dragDiv.parent(this.container);
+        dragDiv.parent(this.mainContainer);
         dragP.parent(dragDiv);
-        this.#dragElement(this.container.elt);
+        this.#dragElement(this.mainContainer.elt);
 
-        // 设置工具按钮容器
-        let ctrlDiv = createDiv();
+        {        // 设置工具按钮容器
+            this.toolsDiv = createDiv();
+            this.toolsDiv.class('ctrler_tools');
 
-        // 将变量输出成 var 语句
-        let varBtn = createButton('var');
-        varBtn.mousePressed(_ => {
-            this.var();
-        });
-
-        let toJsonBtn = createButton('toJson');
-        toJsonBtn.mousePressed(_ => {
-            this.toJson();
-        })
-
-        // 讲变量值固定到 PC 的设置脚本
-        let renewBtn = createButton('renew');
-        renewBtn.mousePressed(_ => {
-            let name = prompt('请填写变量名称', 'pc');
-            this.renew(name);
-        });
-
-        // 重制所有数值，清除网址以及cookie中的数值
-        let resetBtn = createButton('reset');
-        resetBtn.mousePressed(_ => {
-            Object.keys(this.ctrlers).map(k => {
-                document.cookie = `${k}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+            // 将变量输出成 var 语句
+            const varBtn = createButton('var');
+            varBtn.mousePressed(_ => {
+                this.variablesStr();
             });
-            this.updateWithCookieBoo = false;
-            let l = window.location;
-            window.location = l.origin + l.pathname;
-        });
 
-        // 生成包含当前数值的网址
-        let generateUrlBtn = createButton('generaUrl');
-        generateUrlBtn.mousePressed(_ => {
-            Object.keys(this.ctrlers).map(k => {
-                this.#updateValToUrl(k);
-            });
-        });
+            const toJsonBtn = createButton('toJson');
+            toJsonBtn.mousePressed(_ => {
+                this.toJson();
+            })
 
-        // 将工具按钮添加到整体容器
-        if (settings.showToolsBoo == true) {
-            [varBtn, toJsonBtn, renewBtn, resetBtn, generateUrlBtn].map(btn => {
-                btn.parent(ctrlDiv)
+            // 讲变量值固定到 PC 的设置脚本
+            const renewBtn = createButton('renew');
+            renewBtn.mousePressed(_ => {
+                let name = prompt('请填写变量名称', 'pc');
+                this.renew(name);
             });
-            ctrlDiv.parent(this.div);
+
+            // 重制所有数值，清除网址以及cookie中的数值
+            const resetBtn = createButton('reset');
+            resetBtn.mousePressed(_ => {
+                Object.keys(this.ctrlers).map(k => {
+                    document.cookie = `${k}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+                });
+                this.updateWithCookieBoo = false;
+                let l = window.location;
+                window.location = l.origin + l.pathname;
+            });
+
+            // 生成包含当前数值的网址
+            const generateUrlBtn = createButton('generaUrl');
+            generateUrlBtn.mousePressed(_ => {
+                Object.keys(this.ctrlers).map(k => {
+                    this.#updateValToUrl(k);
+                });
+            });
+
+            // 将工具按钮添加到整体容器
+            if (settings.showToolsBoo == true) {
+                [varBtn, toJsonBtn, renewBtn, resetBtn, generateUrlBtn].map(btn => {
+                    btn.parent(this.toolsDiv)
+                });
+                this.toolsDiv.parent(this.ctrlersContainer);
+            }
         }
 
+        //获得滚动条尺寸
+        this.#_scrollBarWidth = this.#getScrollBarWidth();
 
         // 美化 
         this.#mainStyle(settings);
         this.#scrollBeauty();
         if (settings.input_styling == true) { this.#inputKitBeauty() };
-    }
+
+
+
+    };
+    #_parentTarget = this.ctrlersContainer;
+    #_scrollBarWidth = 0;
+    #altTextStyle = `
+        display: block;
+        white-space: pre-wrap;
+        left: 0;
+        --right: 0;
+        width: 100%;
+        word-break: break-all;
+        margin: inherit;
+    `;
+    #setParentTarget = function (parent) {
+        // console.log(parent, this.groups[parent], parent && 'type' in parent && parent.type == 'group');
+
+        if (!parent) {
+            this.#_parentTarget = this.ctrlersContainer
+        } else if (this.groups[parent]) {
+            this.#_parentTarget = this.groups[parent]
+        } else if ('type' in parent && parent.type == 'group') {
+            this.#_parentTarget = parent;
+        }
+        // console.log(this.#_parentTarget);
+        return this.#_parentTarget;
+    };
+
     #mainStyle = function (settings = {
-        updateWithCookieBoo: true, updateWithUrlBoo: true, displayBoo: true, autoHide: true, showToolsBoo: true, text_color: '#000', main_color: '#0075ffcc', bg_color: 'hsla( 0deg, 100%, 100%, 0.8)', ctrler_width: 100, font_size: 12, line_height: '1.5em', checkbox_true_display: '✔'
+        updateWithCookieBoo: true, updateWithUrlBoo: true, displayBoo: true, autoHideBoo: true, showToolsBoo: true, text_color: '#000', main_color: '#0075ffcc', bg_color: 'hsla( 0deg, 100%, 100%, 0.8)', ctrler_width: 100, font_size: 12, line_height: '1.5em', checkbox_true_display: '✔'
     }) {
         // 设置 整体样式
-        let style = document.createElement('style'); {
+        const style = document.createElement('style'); {
             style.innerText = `
                     #${this.id} {
-                    --border-radius:0.2em;
-                    --main-color:${this.maincolor};
-                    --unit-length:1em;
-                    --transition-time:0.5s;
-                    z-index:999;
-                    position: absolute;
-                    left: var(--unit-length);
-                    bottom: var(--unit-length);
-                    display: flex;
-                    flex-direction: column;
-                    padding:var(--unit-length);
-                    border-radius: var(--border-radius);
-                    background:${this.bgcolor};
-                    box-shadow: 0px 0.2em 0px var(--main-color);
-                    font-size:${this.fontsize};
-                    line-height:${this.lineheight};
-                
-                    transition:padding var(--transition-time) ease,
-                    opacity var(--transition-time) ease ,
-                    transform var(--transition-time) ease,
-                    height var(--transition-time) ease;
-                               
-                    user-select: none;
-                    -webkit-user-select: none; 
-                    -webkit-user-select: none; 
-                    -moz-user-select: none;
-                    -ms-user-select: none;
+                        --border-radius:0.2em;
+                        --main-color:${this.maincolor};
+                        --unit-length:1em;
+                        --transition-time:0.5s;
+                        z-index:999;
+                        position: absolute;
+                        left: var(--unit-length);
+                        bottom: var(--unit-length);
+                        display: flex;
+                        flex-direction: column;
+                        padding:var(--unit-length);
+                        border-radius: var(--border-radius);
+                        background:${this.bgcolor};
+                        box-shadow: 0px 0.2em 0px var(--main-color);
+                        font-size:${this.fontsize};
+                        line-height:${this.lineheight};
+                    
+                        transition:
+                        padding var(--transition-time) ease,
+                        opacity var(--transition-time) ease ,
+                        transform var(--transition-time) ease,
+                        height var(--transition-time) ease,
+                        max-height var(--transition-time) ease,
+                        max-width  var(--transition-time) ease,
+                        width var(--transition-time) ease;
+
+                        
+                        user-select: none;
+                        -webkit-user-select: none; 
+                        -webkit-user-select: none; 
+                        -moz-user-select: none;
+                        -ms-user-select: none;
                     
                     }
-                    ` + (settings.autoHide == true ? `  
+                    ` +/** autohide styling */ (settings.autoHideBoo == true ? `  
                     #${this.id}  {
-                    opacity:0.4;
-                    transform:scale(72%,72%);
-                    transform-origin: top left;
+                        opacity:0.4;
+                        transform:scale(72%,72%);
+                        transform-origin: top left;
                     }
                     #${this.id}:hover,
                     #${this.id}.${this.activeClassName}{
                         opacity:1;
                         transform:scale(100%,100%);
-                    }` : '') + `
+                    }
+                    
+                    ` : '') +/**header styling */ `
         
                     #${this.id}  #${this.id}_header{
-                    cursor: move;
-                    height:0;
-                    overflow:hidden;
-                    align-items: center;
-                    flex-direction: row;
-                    justify-content: space-around;
-                    background:var(--main-color);
-        
-                    border-radius: var(--border-radius) var(--border-radius) 0 0;
-                    opacity:0;
-        
-                    position: absolute;
-                    bottom: 100%;
-                    left: 0;
-                    padding: inherit;
-                    padding-top: 0.72em;
-                    padding-bottom: 0.72em;
-        
-                    transition:height 0.5s ease,
-                     background 0.5s ease,
-                     opacity 0.5s ease,
-                     left 0.5s ease,
-                     right 0.5s ease,
-                     transform 0.5s ease;
-        
+                        cursor: move;
+                        height:0;
+                        overflow:hidden;
+                        align-items: center;
+                        flex-direction: row;
+                        justify-content: space-around;
+                        background:var(--main-color);
+
+                        border-radius: var(--border-radius) var(--border-radius) 0 0;
+                        opacity:0;
+
+                        position: absolute;
+                        bottom: 100%;
+                        left: 0;
+                        padding: inherit;
+                        padding-top: 0.72em;
+                        padding-bottom: 0.72em;
+
+                        transition:height var(--transition-time) ease,
+                        background var(--transition-time) ease,
+                        opacity var(--transition-time) ease,
+                        left var(--transition-time) ease,
+                        right var(--transition-time) ease,
+                        transform var(--transition-time) ease;
+
                     }
                     #${this.id}:hover #${this.id}_header{
-                    height:var(--unit-length);
-                    background:var(--main-color);
-                    opacity:1;
-                    transition:height 0.5s ease, background 0.5s ease,opacity 0.5s ease;
+                        height:var(--unit-length);
+                        background:var(--main-color);
+                        opacity:1;
+                        transition:height var(--transition-time) ease, background var(--transition-time) ease,opacity var(--transition-time) ease;
                     }
                     #${this.id}  #${this.id}_header p{
-                    color:#fff;
-                    margin:0;
+                        color:#fff;
+                        margin:0;
                     }
+                    `+/** inner and toolsDiv */`
                     #${this.id} * {
-                    position: relative;
-                    vertical-align: middle;
-                    transition:opacity 1s ease , transform 1s ease;
+                        position: relative;
+                        vertical-align: middle;
+                        transition:opacity 1s ease , transform 1s ease;
                     }
-                    
+
                     #${this.id} div#${this.id + '_inner'} {
                         transition:
-                        max-height var(--transition-time) ease,
-                        max-width  var(--transition-time) ease;
+                            max-height var(--transition-time) ease,
+                            max-width  var(--transition-time) ease,
+                            width var(--transition-time) ease;
                         overflow-y:scroll;
                         overflow-x:hidden;
+                        max-height:96vh;
                     }
-                    #${this.id} div#${this.id + '_inner'}>div {
-                    display: flex;
-                    flex-direction: row;
-                    margin-top: 0.5em;
+                    #${this.id} div.ctrler_tools {
+                       display:flex;
                     }
-        
-                    #${this.id}>div:first-child{
-                    margin-top: 0em;
+                    #${this.id} div.ctrler_tools *{
+                       margin-right:1em;
                     }
-        
-                    #${this.id}>div>* {
-                    margin-right: 1em;
+                   
+                    
+                    `+/**ctrler */`
+                     #${this.id} div#${this.id + '_inner'} div.ctrler {
+                        display: flex;
+                        flex-direction: row;
+                        margin:0.5em 0 0;
+                        max-width: var(--container-w);
                     }
                     
-                    #${this.id}>div>* * {
-                    margin: auto 0.2em;
+                    #${this.id}>div:first-child{
+                        margin-top: 0em;
+                    }
+
+                  
+                    #${this.id} .ctrler>* {
+                        margin-right: 1em;
+                        flex-grow:9;
+                        width:1em;
+                    }
+                    
+                    #${this.id} div.ctrler * {
+                        margin: auto 1em auto 0em;
+                        min-width: fit-content;
+                    }
+                    #${this.id} div.ctrler>*:last-child {
+                        margin-right: 0;
+                        flex-grow: 1;
+                    }
+
+                    #${this.id} div.ctrler .ctrlerName {
+                        overflow:hidden;
+                        text-overflow: ellipsis;
+                        flex-shrink: 0;
+                        flex-grow: 0;
+                    }
+
+                    #${this.id} div.ctrler>div {
+                        flex-wrap:wrap;
+                    }
+                     
+                    #${this.id} textarea,#${this.id} input[type='text']{
+                        flex-grow:4;
                     }
                     
                     #${this.id} .disable{
                         opacity:0.32;
                     }
+                    
                     #${this.id} hr{
                         width:100%;
                         margin: 0.75em 0 0.5em;
                     }
+                    
+                    `+/**alt txt setting */`
+                    #${this.id} div.ctrler[alt] {
+                        flex-wrap: wrap;
+                    }
 
-                    #${this.id} textarea,#${this.id} input[type='text']{
-                        flex-grow:99;
+                    #${this.id} div.ctrler[alt]:after {
+                        content: attr(alt);
+                        ${this.#altTextStyle}
+                    }
+                                        
+                    #${this.id} div.ctrler[alt]>*:last-child {
+                        flex-grow: 1;
+                    }
+                
+                   
+                    
+                   
+                    
+                    `+/** group */`
+                    #${this.id} div.group{
+                        flex-direction:column!important;
+                        transition:height var(--transition-time) ease;
+                    }
+
+                    #${this.id} div.group.hide{
+                        height:var(--title-height)!important;
+                        overflow:hidden;
+                    }
+
+                    #${this.id} div.group.hide .groupTitle>a{
+                        transform:translate(0,-50%)  rotate(-90deg);
+                    }
+                    #${this.id} div.group.hide div{
+                        opacity:0;
+                    }
+                    #${this.id} div.group>div>:first-child:before{
+                        content:'└ ';
+                        transform:scale(0.8);
+                        width:1em;
+                        display:inline-block;
+                    }
+
+                    #${this.id} .group .groupTitle{
+                        display: block;
+                        width: 100%;
+                        font-size:1.1em;
+                        cursor:pointer;
+                        margin: 0;
+                    }
+                    #${this.id} .group .groupTitle a{
+                        --padding-size:0.5em;
+                        --position-size:calc( 0em - var(--padding-size));
+                        padding:var(--padding-size);
+                        position:absolute;
+                        top:50%;
+                        right:var(--position-size);
+                        transform:translate(0,-50%) ;
+                        line-height: 1em;       height: 1em;        width: 1em;
+                        text-decoration: none;
+                        text-align: center;    vertical-align: middle;
+                        
+                        transition:transform var(--transition-time) ease;
+                    }
+                    #${this.id} div.group div{
+                        transition:opacity var(--transition-time) ease;
+                    }
+
+                    #${this.id} div.ctrler label>*{
+                        margin-right:0.5em;
+                    }
+                    #${this.id} div.ctrler label{
+                        margin-right:0.5em;
                     }
 `;
         };
-        this.container.elt.appendChild(style);
+        this.mainContainer.elt.appendChild(style);
     };
 
     #updateCtrlerDisplay = function () {
-        Object.keys(this.nameCol).map(name => {
-            this.nameColWidth = Math.max(this.nameColWidth, this.nameCol[name].width);
-        });
 
+        Object.keys(this.nameCol).map(name => {
+            if (this.ctrlers[name].nameAnonymous == false || this.ctrlers[name].hasOwnProperty('rename')) {
+                this.nameColWidth = Math.max(this.nameColWidth, this.nameCol[name].width);
+            }
+        });
         Object.keys(this.ctrlers).map(name => {
-            let c = this.ctrlers[name];
             this.nameCol[name].size(this.nameColWidth);
         });
 
-        [...Object.values(this.divs)].map(div => {
+
+        [...Object.values(this.ctrlerDivs)].map(div => {
             [...div.elt.querySelectorAll('*')].map(d => {
+                // if (!d.classList.contains('ctrlerName')) { d.style.display = 'flex'; }
                 d.style.color = this.textcolor;
-                d.style.display = 'flex';
             })
-        })
-    }
+        });
+
+        let ctrlersDisplayWidth = Object.values(pc.ctrlers).map(v => v.elt.clientWidth + v.elt.offsetLeft).sort((a, b) => b - a)[0];
+
+        this.#_scrollBarWidth = this.#getScrollBarWidth();
+
+        this.ctrlersContainer.elt.style.setProperty("--container-h",
+            this.ctrlersContainer.elt.clientHeight + 'px');
+
+
+
+        // this.ctrlersContainer.elt.style.setProperty("--container-w",
+        //     this.ctrlersContainer.elt.clientWidth + 'px');
+        this.ctrlersContainer.elt.style.setProperty("--container-w",
+            Math.min(this.ctrlerwidth, Math.max(ctrlersDisplayWidth, this.toolsDiv.elt.clientWidth)) + this.#_scrollBarWidth + 'px');
+
+
+    };
 
     #recordArgs = function () {
         let args = [...arguments];
         let name = args.shift();
         this.objArgs[name] = [...args];
-    }
-    #bindCtrler = function (name) {
+    };
+    #bindCtrler = function (name, parent = this.#_parentTarget) {
         let that = this;
         {
             Object.defineProperty(window, name, {
                 get: function () {
                     return that.getCtrlerVal(name);
+                },
+                set(newValue) {
+                    that.update(name, newValue);
                 }
             });
         }
 
-        this.nameCol[name].parent(this.divs[name]);
-        this.ctrlers[name].parent(this.divs[name]);
+        this.nameCol[name].parent(this.ctrlerDivs[name]);
+        this.ctrlers[name].parent(this.ctrlerDivs[name]);
+
         if (Object.keys(this.valueCol).indexOf(name) != -1) {
-            this.valueCol[name].parent(this.divs[name]);
+            this.valueCol[name].parent(this.ctrlerDivs[name]);
         }
-        this.divs[name].parent(this.div);
+
+        // console.log('\n\nbindctrler: ', parent, arguments);
+        this.ctrlerDivs[name].parent(parent);
+
         ['focus', 'focusin', 'change', 'input'].map(e => {
             this.ctrlers[name].elt.addEventListener(e, () => {
-                this.container.elt.classList.add(this.activeClassName);
+                this.mainContainer.elt.classList.add(this.activeClassName);
             });
         });
 
         ['blur', 'focusout'].map(e => {
             this.ctrlers[name].elt.addEventListener(e, () => {
-                this.container.elt.classList.remove(this.activeClassName);
+                this.mainContainer.elt.classList.remove(this.activeClassName);
             });
         });
 
@@ -337,22 +517,33 @@ class PC {
         }
 
 
-    }
+    };
 
     #nameAndVal = function (name) {
-        this.nameCol[name] = createSpan(`<span >${name}</span>`);
+
+        this.nameCol[name] = createSpan(`${name}`);
+        this.nameCol[name].class('ctrlerName');
         this.nameCol[name].style('user-select:none');
 
         if (['slider', 'color'].indexOf(this.ctrlers[name].type) != -1) {
-            this.valueCol[name] = createSpan(`<span '>${this.getCtrlerVal(name)}</span>`);
+            this.valueCol[name] = createSpan(`${this.getCtrlerVal(name)}`);
             this.valueCol[name].style('user-select:none');
         }
-    }
 
-    #initCtrler = function (name) {
-        this.divs[name] = createDiv();
+        Object.keys(this.groups).map(groupname => this.#groupHeightUpdate(groupname))
+    };
+    #checkCtrlerName(name) {
+        if (name in this.ctrlers) {
+            throw (`"${name}" :A ctrler with this name already exists`);
+            return false;
+        }
+        return true;
+    };
+    #initCtrler = function (name, parent = this.#_parentTarget) {
+        this.ctrlerDivs[name] = createDiv();
+        this.ctrlerDivs[name].class('ctrler');
         this.#nameAndVal(name);
-        this.#bindCtrler(name);
+        this.#bindCtrler(name, parent);
         this.#updateCtrlerDisplay();
 
         if (['fileinput'].indexOf(this.ctrlers[name].type) == -1) {
@@ -367,11 +558,64 @@ class PC {
             this.#getValFromUrl(name);
         }
 
-        this.div.elt.style.setProperty("--container-h", this.container.elt.offsetHeight + 'px')
-        this.div.elt.style.setProperty("--container-w", this.container.elt.offsetWidth + 'px')
-    }
+
+
+        let that = this;
+
+        this.ctrlers[name].update = function (val) {
+            that.update(name, val);
+            return that.ctrlers[name];
+        };
+
+        ['disable', 'enable'].map(fn => {
+            that.ctrlers[name][fn] = function () {
+                that[fn](name);
+                return that.ctrlers[name];
+            };
+        });
+
+        this.ctrlers[name].range = function (min, max) {
+            that.range(name, min, max);
+            return that.ctrlers[name];
+        };
+        this.ctrlers[name].precision = function (precisionNum) {
+            that.precision(name, precisionNum);
+            return that.ctrlers[name];
+        };
+
+        this.ctrlers[name].displayName = function (displayname) {
+            that.displayName(name, displayname);
+            return that.ctrlers[name];
+        };
+
+        this.ctrlers[name].getCtrlerVal = function () {
+            let value = that.getCtrlerVal(name);
+            return value;
+        };
+
+        this.ctrlers[name].var = function (varName) {
+            that.var(name, varName);
+            // console.log(varName, typeof varName, eval(varName), window[varName]);
+            return that.ctrlers[name];
+        };
+
+
+        this.ctrlers[name].alt = function (altText) {
+            that.alt(name, altText);
+            return that.ctrlers[name];
+        }
+    };
 
     slider(name = 'p5js_ctrler_slider', defaultVal = 1, minVal = Math.min(0, defaultVal), maxVal = 2 * Math.max(minVal, defaultVal, 1), precision = Math.max(maxVal, defaultVal, 1) / 10, fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
         switch (true) {
             case maxVal < minVal:
                 throw (`" slider(${arguments}) " -----
@@ -387,23 +631,45 @@ defaultVal, minVal, maxVal, precision need number`);
 
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createSlider(minVal, maxVal, defaultVal, precision);
-        this.ctrlers[name].style('width', `${this.ctrlerwidth}px`);
         this.ctrlers[name].type = 'slider';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.ctrlers[name].input(fxn);
         this.#initCtrler(name);
         return this.ctrlers[name];
-    }
+    };
 
     button(name = 'p5js_ctrler_btn', btnText = 'btn', fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createButton(btnText);
         this.ctrlers[name].mousePressed(fxn);
         this.ctrlers[name].type = 'button';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.#initCtrler(name);
         return this.ctrlers[name];
-    }
+    };
 
     checkbox(name = 'p5js_ctrler_checkbox', defaultVal = false, labelText = ['yes', 'no'], fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createCheckbox(name, defaultVal);
         this.ctrlers[name].labelText = {
@@ -412,6 +678,8 @@ defaultVal, minVal, maxVal, precision need number`);
         };
         this.ctrlers[name].changed(fxn);
         this.ctrlers[name].type = 'checkbox';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.ctrlers[name].elt.style.display = 'flex';
         this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
         this.ctrlers[name].elt.oninput = _ => {
@@ -423,9 +691,18 @@ defaultVal, minVal, maxVal, precision need number`);
 
         this.#initCtrler(name);
         return this.ctrlers[name];
-    }
+    };
 
     select(name = 'p5js_ctrler_select', options = [], fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createSelect(name);
         options.map(o => {
@@ -433,95 +710,312 @@ defaultVal, minVal, maxVal, precision need number`);
         });
         this.ctrlers[name].changed(fxn);
         this.ctrlers[name].type = 'select';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.#initCtrler(name);
         return this.ctrlers[name];
-    }
+    };
 
     radio(name = 'p5js_ctrler_radio', options = [], fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createRadio(name);
+
+
+
         options.map(o => {
             if (o instanceof Array) {
                 this.ctrlers[name].option(...o);
             } else {
-                this.ctrlers[name].option(o, o);
+                this.ctrlers[name].option(o);
             }
         });
+
+
         this.ctrlers[name].changed(fxn);
         this.ctrlers[name].type = 'radio';
-        // this.ctrlers[name].elt.style.width = '100%';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.ctrlers[name].elt.style.display = 'flex';
         this.ctrlers[name].elt.style.whiteSpace = 'nowrap';
         this.#initCtrler(name);
-        return this.ctrlers[name];
-    }
+        this.#radioBeautify(name);
 
+        return this.ctrlers[name];
+    };
+
+
+    #radioBeautify(name) {
+        const inputs = [...this.ctrlers[name].elt.querySelectorAll('[type="radio"]')].filter(i => i.parentElement != 'label');
+        inputs.map(i => {
+            const p = i.parentElement;
+            if (p.localName == 'label') {
+                return;
+            }
+            const labels = p.querySelectorAll('label');
+            [...labels].map(l => {
+                if (l.innerText == i.value) {
+                    p.removeChild(i);
+                    const span = document.createElement('spen');
+                    span.innerText = l.innerText;
+                    l.innerText = '';
+                    l.appendChild(i);
+                    l.appendChild(span);
+                }
+            });
+        });
+
+        const div = this.ctrlers[name].elt;
+        const lArr = [...div.querySelectorAll('[type="radio"]')].map((i, idx) => i.parentElement);
+        const sizeSortArr = lArr.map(l => l.clientWidth).sort((a, b) => b - a);
+        let dw = div.clientWidth, lwMin = 0, row = 0;
+
+        while (dw > 0 && sizeSortArr.length > 0) {
+            lwMin = sizeSortArr.shift();
+            dw = dw - lwMin;
+            row++;
+        }
+
+        row = dw <= 10 ? row - 1 : row;
+
+        if (row >= 2) {
+            lArr.map(l => div.removeChild(l));
+
+            [...new Array(row)].map((i, idx) => {
+                let p = document.createElement('p');
+                p.style.cssText = `    display: flex;    flex-direction: column;margin:0`;
+                div.appendChild(p);
+                div.style.cssText += `flex-wrap: nowrap;`;
+                for (let j = 0, jj = Math.ceil(lArr.length / row); j < jj; j++) {
+                    if (lArr[j * row + idx]) {
+                        p.appendChild(lArr[j * row + idx]);
+                    }
+                }
+            });
+            this.#updateCtrlerDisplay();
+        }
+
+
+    };
     color(name = 'p5js_ctrler_color', defaultVal = '#369', fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createColorPicker(defaultVal);
         this.ctrlers[name].type = 'color';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.ctrlers[name].input(fxn);
         this.#initCtrler(name);
         return this.ctrlers[name];
-    }
+    };
 
     input(name = 'p5js_ctrler_input', defaultVal = '', fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createInput(defaultVal);
         this.ctrlers[name].type = 'input';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.ctrlers[name].input(fxn);
         this.#initCtrler(name);
         return this.ctrlers[name];
-    }
+    };
 
     textarea(name = "p5js_ctrler_textarea", defaultVal = '', fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createElement('textarea', defaultVal);
 
         this.ctrlers[name].type = 'textarea';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.ctrlers[name].changed(fxn);
         this.ctrlers[name].input((e) => { this.#updateTextareaHeight(e.path[0]) });
         this.#initCtrler(name);
         this.#updateTextareaHeight(this.ctrlers[name].elt);
         return this.ctrlers[name];
-    }
+    };
     #updateTextareaHeight = (textareaElt) => {
-        let taStyle = getComputedStyle(textareaElt, null);
+        const taStyle = getComputedStyle(textareaElt, null);
 
-        let div = document.createElement('div');
+        const div = document.createElement('div');
         div.innerText = textareaElt.value;
+        div.innerText = div.innerText.match(/[\n\r]$/) ? div.innerText + '_' : div.innerText;
+
         let divStyleText = '';
-        ['font-size', 'margin', 'padding', 'line-height', 'white-space', 'font', 'font-family'].map(s => {
-            divStyleText += s + ':' + taStyle.getPropertyValue(s) + ';';
+        let styleAttrsArr = ["font-size", "color", "height", "max-height", "margin", "margin-right", "flex-grow", "position", "vertical-align", "transition", "writing-mode", "font-family", "text-rendering", "color", "letter-spacing", "word-spacing", "line-height", "text-transform", "text-indent", "text-shadow", "display", "text-align", "appearance", "-webkit-rtl-ordering", "resize", "cursor", "white-space", "overflow-wrap", "background-color", "column-count", "margin", "border-width", "border-style", "border-color", "border-image", "padding"];
+
+        [...new Set(styleAttrsArr)].map(s => {
+            if (s.indexOf('height') != -1) { return }
+            divStyleText += (s == 'overflow-wrap' ? 'word-break' : s) + ':' + taStyle.getPropertyValue(s) + ';';
         });
 
         div.style.cssText = divStyleText;
         div.style.width = textareaElt.clientWidth + 'px';
         div.style.position = 'absolute';
-        div.style.top = 0, div.style.left = 0, div.style.wordBreak = 'break-all';
+        div.style.top = 0, div.style.left = 0;
 
         document.body.appendChild(div);
         textareaElt.style.height = 'max(' + div.clientHeight + 'px , 2.5em )';
         textareaElt.style.maxHeight = '80vh';
+
         document.body.removeChild(div);
-    }
+    };
 
     fileinput(name = "p5js_ctrler_fileinput", fxn = () => { }) {
+        if (name && !this.#checkCtrlerName(name)) {
+            return;
+        }
+        let nameAnonymous = false;
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+            nameAnonymous = true;
+        }
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createFileInput(fxn);
         this.ctrlers[name].type = 'fileinput';
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
         this.#initCtrler(name);
         return this.ctrlers[name];
-    }
+    };
 
     hr() {
-        let hr = createElement('hr', '');
-        hr.parent(this.div);
-    }
+        const hr = createElement('hr', '');
+        hr.parent(this.ctrlersContainer);
+    };
 
 
 
+    group(name = "p5js_ctrler_group") {
+        if (arguments.length == 0) {
+            name += this.#randomSuffix();
+        }
+
+        this.#recordArgs(...arguments);
+        this.groups[name] = createDiv();
+        this.groups[name].type = 'group';
+        this.#initGroup(name);
+
+        // this.#setParentTarget(this.groups[name]);
+
+        // console.log(this.#_parentTarget)
+
+        return this.groups[name];
+    };
+    #checkGroupName(name) {
+        if (name in this.groups) {
+            throw (`"${name}" :A group with this name already exists`);
+            return false;
+        }
+        return true;
+    };
+    #initGroup = function (name) {
+        let that = this;
+
+        {
+            Object.defineProperty(window, name, {
+                get: function () {
+                    return that.groups[name];
+                },
+            });
+        }
+
+
+        let groupFoldFn = (e) => {
+            this.groups[name].elt.classList.toggle("hide");
+        };
+        this.groups[name].class('group');
+        this.groups[name].attribute('groupname', name);
+        this.groups[name].parent(this.ctrlersContainer);
+
+        this.groupNames[name] = createP();
+        this.groupNames[name].class('groupTitle');
+        this.groupNames[name].mouseClicked(groupFoldFn);
+
+        this.groupNames[name].parent(this.groups[name]);
+
+        let nameSpan = createSpan(`${name}`);
+        nameSpan.class('groupTitleName');
+        nameSpan.parent(this.groupNames[name]);
+
+        let switchBtn = createA('javascript:void 0;', '\<');
+        switchBtn.parent(this.groupNames[name]);
+
+
+
+        this.groups[name].elt.style.setProperty('--title-height', this.groupNames[name].elt.clientHeight + 'px');
+
+        ['slider', 'button', 'checkbox', 'select', 'radio', 'color', 'input', 'textarea', 'fileinput', 'hr'].map(fn => {
+            this.groups[name][fn] = this.#groupFn(name, fn);
+        });
+        this.groups[name].displayName = function (displayname) {
+            that.displayName(name, displayname);
+            return that.groups[name];
+
+        }
+    };
+    #groupFn = function (name, fn) {
+        let that = this;
+        return function () {
+            let args = [...arguments];
+
+            that.#setParentTarget(that.groups[name]);
+            // console.log('\n\ngroupFn: ', that, name, fn, that.#_parentTarget);
+
+            let fnResult = that[fn](...args);
+            that.#setParentTarget();
+
+            // console.log(that.groups[name], that.groups[name].elt.clientHeight);
+            // that.groups[name].elt.style.height = 'unset';
+            // that.groups[name].elt.style.height = String(that.groups[name].elt.clientHeight) + 'px';
+
+            that.#groupHeightUpdate(name);
+
+            return that.groups[name];
+        }
+    };
+    #groupHeightUpdate(name) {
+
+        this.groups[name].elt.style.height = 'unset';
+        this.groups[name].elt.style.height = String(this.groups[name].elt.clientHeight) + 'px';
+
+    };
     update(name, value) {
+        // console.log(name, value, this.ctrlers[name], this.ctrlers[name]);
 
         if (value == null ||
             (['select', 'radio'].indexOf(this.ctrlers[name].type) != -1 &&
@@ -552,23 +1046,86 @@ defaultVal, minVal, maxVal, precision need number`);
         if (name in this.valueCol) {
             this.valueCol[name].elt.innerText = this.getCtrlerVal(name);
         }
-    }
+    };
 
     disable(name) {
-        this.divs[name].elt.classList.add('disable');
+        this.ctrlerDivs[name].elt.classList.add('disable');
         this.ctrlers[name].elt.setAttribute('disabled', true);
-    }
+    };
 
     enable(name) {
-        this.divs[name].elt.classList.remove('disable');
+        this.ctrlerDivs[name].elt.classList.remove('disable');
         this.ctrlers[name].elt.removeAttribute('disabled');
-    }
+    };
 
     range(name, min, max) {
         this.ctrlers[name].elt.setAttribute('min', min);
         this.ctrlers[name].elt.setAttribute('max', max);
         this.update(name, Math.max(Math.min(this.ctrlers[name].elt.value, max), min));
-    }
+    };
+    precision(name, precisionNum) {
+        switch (true) {
+            case this.ctrlers[name].type != 'slider':
+                throw ('precision(name, precisionNum): requires a slider name');
+                break;
+            case !isFinite(Number(precisionNum)) || Number(precisionNum) == 0:
+                throw ('precision(name, precisionNum): requires a non-zero number');
+                break;
+        }
+        this.ctrlers[name].elt.step = precisionNum;
+    };
+
+    displayName(name, displayname) {
+        if (name in this.ctrlers || name in this.groups) {
+            if (name in this.groups) {
+                this.groupNames[name].elt.querySelector('.groupTitleName').innerText = displayname;
+                this.groups[name].rename = displayname;
+
+            } else if (name in this.ctrlers) {
+                this.nameCol[name].elt.innerText = displayname;
+                this.ctrlers[name].rename = displayname;
+
+                let groupname = this.ctrlerDivs[name].parent().getAttribute('groupname');
+                if (groupname) {
+                    this.#groupHeightUpdate(groupname);
+                }
+
+            }
+        }
+        this.#updateCtrlerDisplay();
+    };
+
+
+    alt(name, altText) {
+        switch (true) {
+            case !name in this.ctrlerDivs:
+                throw (`alt(name, altText): cant find a ctrler named ${name}`);
+                break;
+            case !altText || altText == '':
+                throw ('alt(name, altText): altText requires a string');
+                break;
+        }
+        this.ctrlerDivs[name].elt.setAttribute('alt', altText);
+
+        {   // 让 伪元素的文本也能换行
+            // https://jsfiddle.net/XkNxs/
+            // https://stackoverflow.com/questions/17047694/add-line-break-to-after-or-before-pseudo-element-content
+            this.ctrlerDivs[name].elt.setAttribute('altname', name);
+
+            const altStyle = document.createElement('style');
+            altStyle.innerText = ` #${this.id} div.ctrler[altname=${name}]::after {
+                content: "${altText}";
+                ${this.#altTextStyle}
+            }`;
+            this.#setDomName(altStyle, this.id + `_alt_text_for_${name}`);
+
+            if (document.querySelectorAll(`style[name=${altStyle.name}]`).length == 0) {
+                document.body.appendChild(altStyle);
+            }
+        }
+
+        this.#updateCtrlerDisplay();
+    };
 
     getCtrlerVal(name) {
         let that = this;
@@ -580,20 +1137,31 @@ defaultVal, minVal, maxVal, precision need number`);
                 return that.ctrlers[name].selected();
                 break;
             case 'radio':
-                let radioResult = that.ctrlers[name].selected();
-                if (radioResult == null) {
-                    return null;
-                } else {
-                    return that.ctrlers[name].selected().value;
-                }
+                let input = that.ctrlers[name].elt.querySelectorAll('input');
+                let t = [...input].filter(i => i.checked);
+                let radioResult = t.length ? t[0].value : null;
+                return radioResult;
                 break;
             default:
                 return that.ctrlers[name].value();
                 break;
         }
-    }
+    };
+    var(name, varName) {
+        if (!name) { throw (`var(name, varName): "${name}" : name requires a string`) }
+        if (!(name in this.ctrlers)) { throw (`var(name, varName): "${name}" : name not in ctrlers`) }
+        if (!varName) { throw (`var(name, varName): "${varName}" : varName need a string`) }
 
-    var() {
+        let that = this;
+        Object.defineProperty(window, varName, {
+            get() { return that.getCtrlerVal(name); },
+            set(newValue) {
+                that.update(name, newValue);
+            },
+        });
+        return window[varName];
+    };
+    variablesStr() {
 
         let result = 'var ';
         Object.keys(this.ctrlers).map((k, idx, arr) => {
@@ -612,7 +1180,7 @@ defaultVal, minVal, maxVal, precision need number`);
         result = result.replace(/,/g, ',\n\t') + ';';
         this.#copyStr(result);
         return result;
-    }
+    };
 
     toJson() {
         let result = '{';
@@ -633,7 +1201,7 @@ defaultVal, minVal, maxVal, precision need number`);
         result = result.replace(/,/g, ',\n\t') + '}';
         this.#copyStr(result);
         return result;
-    }
+    };
     renew(varname) {
         let result = `var ${varname} ; \n${varname}=new PC(${this.displayBoo});\n`;
 
@@ -674,7 +1242,7 @@ defaultVal, minVal, maxVal, precision need number`);
 
         this.#copyStr(result);
         return result;
-    }
+    };
     load(keyValObj) {
         Object.keys(keyValObj).map(k => {
             if (k in this.ctrlers) {
@@ -682,6 +1250,7 @@ defaultVal, minVal, maxVal, precision need number`);
             }
         })
     };
+
 
     #getValFromCookie = function (name) {
         let args = [];
@@ -695,7 +1264,7 @@ defaultVal, minVal, maxVal, precision need number`);
         document.cookie.split('; ').map(c => {
             let [k, v] = c.split('=');
             if (args.indexOf(k) != -1) {
-                if (this.ctrlers[k].type == 'fileinput') {
+                if (this.ctrlers[k].type == 'fileinput' || this.ctrlers[k].elt.getAttribute('disable') == true) {
                     return;
                 }
                 this.update(k, v);
@@ -713,7 +1282,7 @@ defaultVal, minVal, maxVal, precision need number`);
 
         if (this.updateWithCookieBoo == true) {
             args.map(k => {
-                if (this.ctrlers[k].type == 'fileinput') {
+                if (this.ctrlers[k].type == 'fileinput' || this.ctrlers[k].elt.getAttribute('disable') == true) {
                     return;
                 }
                 document.cookie = `${k}=${this.getCtrlerVal(k)}; `;
@@ -730,7 +1299,7 @@ defaultVal, minVal, maxVal, precision need number`);
 
         let url = new URL(document.location.href);
         args.map(n => {
-            if (this.ctrlers[n].type == 'fileinput') {
+            if (this.ctrlers[n].type == 'fileinput' || this.ctrlers[n].elt.getAttribute('disable') == true) {
                 return;
             }
             if (url && url.searchParams.has(n)) {
@@ -749,7 +1318,7 @@ defaultVal, minVal, maxVal, precision need number`);
 
         let url = new URL(window.location.href);
         args.map(n => {
-            if (this.ctrlers[n].type == 'fileinput') {
+            if (this.ctrlers[n].type == 'fileinput' || this.ctrlers[n].elt.getAttribute('disable') == true) {
                 return;
             }
             if (url && url.searchParams.has(n)) {
@@ -765,7 +1334,7 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     #copyStr = function (str) {
-        var a = document.createElement("textarea");
+        const a = document.createElement("textarea");
         a.value = str;
         document.body.appendChild(a);
         a.select();
@@ -773,8 +1342,13 @@ defaultVal, minVal, maxVal, precision need number`);
         a.style.display = "none";
         window.alert(str + "内容已复制到剪贴板");
     };
-
-
+    #setDomName = function (domElm, name) {
+        domElm.name = name;
+        domElm.setAttribute('name', name);
+    };
+    #randomSuffix() {
+        return '_' + String(Math.random()).replace(/\./g, '');
+    };
 
     #dragElement = (elmnt) => {
         /*// base on https://c.runoob.com/codedemo/5370/ */
@@ -912,7 +1486,7 @@ defaultVal, minVal, maxVal, precision need number`);
             elmnt.onmousedown = that.dragMouseDown;
         }
 
-        let style = document.createElement('style');
+        const style = document.createElement('style');
         style.setAttribute('styleFor', 'dragElement');
         style.innerText = `
         #${this.id}[${stickAttrName}*=top] #${this.id}_header {
@@ -925,12 +1499,14 @@ defaultVal, minVal, maxVal, precision need number`);
             height:1em;
             background:var(--main-color);
             opacity:1;
-            transition:height 0.5s ease, background 0.5s ease,opacity 0.5s ease;
+            transition:height var(--transition-time) ease, background var(--transition-time) ease,opacity var(--transition-time) ease;
          }
 
         #${this.id}[${stickAttrName}]{
             transform:scale(100%,100%)!important;
         }
+        
+        `+ (this.settings.autoHideBoo == true ? `
         
         #${this.id}[${stickAttrName}*=top],
         #${this.id}[${stickAttrName}*=bottom]
@@ -953,11 +1529,6 @@ defaultVal, minVal, maxVal, precision need number`);
             padding:var(--unit-length) var(--unit-length)!important;
         }
         
-        #${this.id}[${stickAttrName}]:hover #${this.id}_inner{
-            max-height: var(--container-h);
-            max-width: var(--container-w);
-        }
-           
         #${this.id}[${stickAttrName}*=top] #${this.id}_inner,
         #${this.id}[${stickAttrName}*=bottom] #${this.id}_inner
         {
@@ -965,15 +1536,35 @@ defaultVal, minVal, maxVal, precision need number`);
             max-width: var(--container-w)!important;
         }
      
-        #${this.id}[${stickAttrName}*=left] #${this.id}_inner
-        {
-            max-width:0;
-        }
+        #${this.id}[${stickAttrName}*=left] #${this.id}_inner,
         #${this.id}[${stickAttrName}*=right] #${this.id}_inner
         {
             max-width:0;
+            max-height: var(--container-h);
+        }
+       
+        
+        #${this.id}[${stickAttrName}]:hover #${this.id}_inner{
+            max-height: var(--container-h);
+            max-width: var(--container-w);
+        }
+           
+
+        `: `
+        #${this.id}[${stickAttrName}*=top],
+        #${this.id}[${stickAttrName}*=bottom],
+        #${this.id}[${stickAttrName}*=left],
+        #${this.id}[${stickAttrName}*=right],
+        #${this.id}[${stickAttrName}]{
+            padding:var(--unit-length) var(--unit-length)!important;
         }
         
+        #${this.id}[${stickAttrName}] #${this.id}_inner{
+            max-height: var(--container-h);
+            max-width: var(--container-w);
+        }
+        
+        `) + `
         #${this.id}[${stickAttrName}] #${this.id}_header{
             height:var(--unit-length)!important;
             opacity:1;
@@ -1019,11 +1610,11 @@ defaultVal, minVal, maxVal, precision need number`);
             bottom:0;
         }
         `;
-        this.container.elt.appendChild(style);
-    }
+        this.mainContainer.elt.appendChild(style);
+    };
 
     #scrollBeauty = () => {
-        let style = document.createElement('style');
+        const style = document.createElement('style');
         style.innerText = `
        [id*=${this.id.replace(/\d*$/g, '')}] ::-webkit-scrollbar {
             width: 2px;
@@ -1057,15 +1648,67 @@ defaultVal, minVal, maxVal, precision need number`);
         }`;
 
         style.name = this.id + '_style_beauty';
-        if (document.querySelectorAll(style.name).length == 0) {
+        if (document.querySelectorAll(`style[name=${style.name}]`).length == 0) {
             document.body.appendChild(style);
         }
 
-    }
+        this.#_scrollBarWidth = this.#getScrollBarWidth();
+
+        const styleOfScrollbarWidth = document.createElement('style');
+        this.#setDomName(styleOfScrollbarWidth, this.id + '_style_of_scrollbar_width');
+
+        styleOfScrollbarWidth.innerText = `
+        [id*=${this.id.replace(/\d*$/g, '')}]{
+           --scrollbar-width:${this.#_scrollBarWidth};
+        }
+
+
+        #${this.id} div#${this.id + '_inner'} {
+            overflow-y:hidden!important;
+        }
+        
+        #${this.id} div#${this.id + '_inner'}:hover {
+            overflow-y:scroll;
+        }
+        
+        #${this.id} div#${this.id + '_inner'}>* {
+            padding-right:var(--scrollbar-width);
+        }
+
+        #${this.id} div#${this.id + '_inner'}:hover>* {
+            padding-right:0;
+        }
+        
+        `;
+
+        if (document.querySelectorAll(`style[name=${styleOfScrollbarWidth.name}]`).length == 0) {
+            document.body.appendChild(styleOfScrollbarWidth);
+        }
+    };
+    #getScrollBarWidth() {
+
+        // https://blog.csdn.net/fukaiit/article/details/100069537
+        const targetDom = this.mainContainer.elt;
+        const scroll = document.createElement("div");
+        const scrollIn = document.createElement("div");
+        scroll.appendChild(scrollIn);
+        scroll.style.width = "100px";
+        scroll.style.height = "50px";
+        scroll.style.overflow = "scroll";
+        scroll.style.marginLeft = "-100000px";
+        targetDom.appendChild(scroll);
+        const scrollInWidth = scrollIn.offsetWidth;
+        const scrollWidth = scroll.offsetWidth;
+        const tmp = setTimeout(() => {
+            targetDom.removeChild(scroll);
+            clearTimeout(tmp);
+        }, 10);
+        return scrollWidth - scrollInWidth;
+    };
 
     #inputKitBeauty = function (styleInnerCSSText) {
 
-        let style = document.createElement('style');
+        const style = document.createElement('style');
         if (arguments.length == 0) {
             style.innerHTML = `
         [id*=${this.name}] input {
@@ -1188,5 +1831,10 @@ defaultVal, minVal, maxVal, precision need number`);
             style.setAttribute('name', this.name);
 
         }
+    };
+
+    title(title) {
+        this.mainContainer.elt.querySelector(`#${this.id + '_header'} p`).innerText = title;
+        return this;
     }
 }
