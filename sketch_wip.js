@@ -41,7 +41,7 @@ const contentText = {
 let txtFileContent = contentText.txtFileContent;
 const drawVariableArr = ['_slider', '_slider2', '_button', '_check_box', '_sel', '_radio', '_color', '', 'grpSlider', 'grpSelect', 'grpRadio', '', 'txtInput', 'txtareaTesting', 'txtFileContent'];
 
-const ballsObj = new Balls();
+// const ballsObj = new Balls();
 
 function preload() {
 
@@ -51,7 +51,7 @@ function preload() {
     updateWithUrlBoo: true,
     updateWithCookieBoo: true,
     autoHideBoo: false,
-    ctrler_width: 400
+    ctrler_width: 300
   });
 
   /** 控制器功能 | Controller Features */
@@ -176,9 +176,9 @@ function preload() {
   pc.textarea('add_ctrler_para');
   pc.update('add_ctrler_para', typeParas[add_ctrler_type]);
   pc.button('add_ctrler', contentText.addCtrlerBtnTxt, () => {
-    let fnTxt = 'pc[add_ctrler_type](' + add_ctrler_para + ', \n()=>{console.log(name+" : "+pc.getCtrlerVal(name))})';
+    let fnTxt = 'pc.' + add_ctrler_type + '(' + add_ctrler_para + ', \n()=>{console.log(name+" : "+pc.getCtrlerVal(name))})';
     let fn = new Function(fnTxt);
-    console.log(fnTxt, fn);
+    console.log('create a new ctrler by code test: \n___\n' + fnTxt + '\n---\n', fn);
     fn();
   }).alt(contentText.addCtrlerAlt);
 }
@@ -254,7 +254,13 @@ function draw() {
     pop();
   }
 
-  drawBalls();
+  document.addEventListener('onpagehide', () => {
+    noLoop();
+  });
+  document.addEventListener('onpageshow', () => {
+    loop();
+  });
+
 }
 
 function windowResized() {
@@ -269,79 +275,3 @@ function loadReadmeDocIntoPage() {
   resizeCanvas(document.body.clientWidth, windowHeight);
 }
 
-function Ball(size = 100) {
-  this.size = size;
-  this.x = Math.random() * (width - this.size * 2) + this.size;
-  this.y = Math.random() * (height - this.size * 2) + this.size;
-  this.vx = Math.random() * 2 - 1, this.vy = Math.random() * 2 - 1;
-
-  this.fill = "#000";
-  this.stroke = "#fff";
-  this.strokeWeight = 2;
-
-
-  this.detectEdge = () => {
-    this.vx = this.x < this.size / 2 || this.x > width - this.size / 2 ? -this.vx : this.vx;
-    this.vy = this.y < this.size / 2 || this.y > height - this.size / 2 ? -this.vy : this.vy;
-  };
-  this.move = () => {
-    this.x += this.vx;
-    this.y += this.vy;
-  };
-
-  this.show = () => {
-    push();
-
-    fill(this.fill);
-    stroke(this.stroke);
-    strokeWeight(this.strokeWeight);
-
-    ellipseMode(CENTER);
-    ellipse(this.x, this.y, this.size, this.size);
-    pop();
-  };
-
-  this.draw = () => {
-    this.detectEdge();
-    this.move();
-    this.show();
-  }
-}
-
-function Balls() {
-  this.ballsArr = [];
-  this._balls = 0;
-  const that = this;
-  Object.defineProperty(this, 'balls', {
-    get: () => {
-      return that._balls;
-    },
-    set: (newValue) => {
-      that._balls = newValue;
-      if (that.ballsArr.length < that._balls) {
-        for (let i = 0; i < that._balls - that.ballsArr.length; i++) {
-          that.ballsArr.push(new Ball());
-        }
-      } else if (that.ballsArr.length > that._balls) {
-        that.ballsArr.length = that._balls;
-      }
-    }
-  });
-  this.collisionDetect = () => {
-    this.ballsArr.filter(b => b instanceof Ball).map((b, idx, arr) => {
-
-    });
-  };
-  this.draw = () => {
-    this.ballsArr.map(b => {
-      if (b instanceof Ball) {
-        b.draw();
-      }
-    })
-  };
-}
-
-function drawBalls() {
-  // ballsObj.balls = _slider;
-  // ballsObj.draw();
-}

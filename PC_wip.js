@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/04/26 23:03:31"
+// Last modified: "2022/04/28 18:31:08"
 
 class PC {
 
@@ -12,8 +12,8 @@ class PC {
         text_color: '#000',
         main_color: '#0075ffcc',
         bg_color: 'hsla( 0deg, 100%, 100%, 0.8)',
-        ctrler_width: 80,
-        font_size: 10,
+        ctrler_width: 100,
+        font_size: 12,
         line_height: '1.5em',
         checkbox_true_display: '✔',
         input_styling: false,
@@ -44,20 +44,21 @@ class PC {
 
         this.name = 'p5js_Ctrler';
         this.id = this.name;
-        const existedDom = document.querySelectorAll(`[id*=${this.id}]`);
+        this.version = '0.1.0';
+        let existedDom = document.querySelectorAll(`[id*=${this.id}]`);
         if (existedDom.length > 0) {
             existedDom = [...existedDom].filter(dom => ['inner', 'header'].every(n => dom.id.indexOf(n) == -1));
             this.id += '_' + existedDom.length;
         }
         this.activeClassName = 'active';
 
-        this.textcolor = settings.text_color,
-            this.ctrlerwidth = Number(String(settings.ctrler_width).replace(/[^\d]/g, '')),
-            this.fontsize = typeof settings.font_size == 'string' ? settings.font_size : settings.font_size + 'px',
-            this.lineheight = typeof settings.line_height == 'string' ? settings.line_height : settings.line_height + 'px';
-        this.bgcolor = settings.bg_color,
-            this.maincolor = settings.main_color,
-            this.checkboxtrue = settings.checkbox_true_display;
+        this.textcolor = this.settings.text_color,
+            this.ctrlerwidth = Number(String(this.settings.ctrler_width).replace(/[^\d]/g, '')),
+            this.fontsize = typeof this.settings.font_size == 'string' ? this.settings.font_size : this.settings.font_size + 'px',
+            this.lineheight = typeof this.settings.line_height == 'string' ? this.settings.line_height : this.settings.line_height + 'px';
+        this.bgcolor = this.settings.bg_color,
+            this.maincolor = this.settings.main_color,
+            this.checkboxtrue = this.settings.checkbox_true_display;
 
         // 容器声明
         this.ctrlerDivs = {}, this.nameCol = {}, this.ctrlers = {}, this.valueCol = {}, this.groups = {}, this.groupNames = {}, this.objArgs = {}, this.nameColWidth = 0;
@@ -82,8 +83,8 @@ class PC {
         this.#setParentTarget();
 
         // 设置是否从网址、cookie 加载 
-        this.updateWithUrlBoo = settings.updateWithUrlBoo;
-        this.updateWithCookieBoo = settings.updateWithCookieBoo;
+        this.updateWithUrlBoo = this.settings.updateWithUrlBoo;
+        this.updateWithCookieBoo = this.settings.updateWithCookieBoo;
         window.addEventListener('blur', () => {
             this.#saveValToCookie();
         });
@@ -100,26 +101,26 @@ class PC {
         dragP.parent(dragDiv);
         this.#dragElement(this.mainContainer.elt);
 
-        {        // 设置工具按钮容器
+        if (this.settings.showToolsBoo == true) {        // 设置工具按钮容器
             this.toolsDiv = createDiv();
             this.toolsDiv.class('ctrler_tools');
 
             // 将变量输出成 var 语句
             const varBtn = createButton('var');
             varBtn.mousePressed(_ => {
-                this.variablesStr();
+                this.#variablesStr();
             });
 
             const toJsonBtn = createButton('toJson');
             toJsonBtn.mousePressed(_ => {
-                this.toJson();
+                this.#toJson();
             })
 
             // 讲变量值固定到 PC 的设置脚本
             const renewBtn = createButton('renew');
             renewBtn.mousePressed(_ => {
                 let name = prompt('请填写变量名称', 'pc');
-                this.renew(name);
+                this.#renew(name);
             });
 
             // 重制所有数值，清除网址以及cookie中的数值
@@ -142,7 +143,7 @@ class PC {
             });
 
             // 将工具按钮添加到整体容器
-            if (settings.showToolsBoo == true) {
+            if (this.settings.showToolsBoo == true) {
                 [varBtn, toJsonBtn, renewBtn, resetBtn, generateUrlBtn].map(btn => {
                     btn.parent(this.toolsDiv)
                 });
@@ -154,9 +155,9 @@ class PC {
         this.#_scrollBarWidth = this.#getScrollBarWidth();
 
         // 美化 
-        this.#mainStyle(settings);
+        this.#mainStyle(this.settings);
         this.#scrollBeauty();
-        if (settings.input_styling == true) { this.#inputKitBeauty() };
+        if (this.settings.input_styling == true) { this.#inputKitBeauty() };
 
 
 
@@ -186,9 +187,7 @@ class PC {
         return this.#_parentTarget;
     };
 
-    #mainStyle = function (settings = {
-        updateWithCookieBoo: true, updateWithUrlBoo: true, displayBoo: true, autoHideBoo: true, showToolsBoo: true, text_color: '#000', main_color: '#0075ffcc', bg_color: 'hsla( 0deg, 100%, 100%, 0.8)', ctrler_width: 100, font_size: 12, line_height: '1.5em', checkbox_true_display: '✔'
-    }) {
+    #mainStyle = function (settings = this.settings) {
         // 设置 整体样式
         const style = document.createElement('style'); {
             style.innerText = `
@@ -293,6 +292,7 @@ class PC {
                         overflow-y:scroll;
                         overflow-x:hidden;
                         max-height:96vh;
+                        max-width: var(--container-w);
                     }
                     #${this.id} div.ctrler_tools {
                        display:flex;
@@ -307,7 +307,9 @@ class PC {
                         display: flex;
                         flex-direction: row;
                         margin:0.5em 0 0;
-                        max-width: var(--container-w);
+                        --max-width: var(--container-w);
+                        --min-width: fit-content;
+                        --width: calc(var(--container-w) * 0.5 );
                     }
                     
                     #${this.id}>div:first-child{
@@ -318,7 +320,7 @@ class PC {
                     #${this.id} .ctrler>* {
                         margin-right: 1em;
                         flex-grow:9;
-                        width:1em;
+                        width: fit-content;
                     }
                     
                     #${this.id} div.ctrler * {
@@ -326,7 +328,7 @@ class PC {
                         min-width: fit-content;
                     }
                     #${this.id} div.ctrler>*:last-child {
-                        margin-right: 0;
+                        margin-right: 0em;
                         flex-grow: 1;
                     }
 
@@ -335,6 +337,9 @@ class PC {
                         text-overflow: ellipsis;
                         flex-shrink: 0;
                         flex-grow: 0;
+                        --min-width: unset;
+                        width:fit-content;
+                        min-width:var(--namecol-w);
                     }
 
                     #${this.id} div.ctrler>div {
@@ -426,45 +431,65 @@ class PC {
                     }
                     #${this.id} div.ctrler label{
                         margin-right:0.5em;
+                        display: inline-block;
                     }
 `;
         };
+        style.setAttribute('name', this.id + '_main_style');
         this.mainContainer.elt.appendChild(style);
     };
 
     #updateCtrlerDisplay = function () {
 
-        Object.keys(this.nameCol).map(name => {
-            if (this.ctrlers[name].nameAnonymous == false || this.ctrlers[name].hasOwnProperty('rename')) {
-                this.nameColWidth = Math.max(this.nameColWidth, this.nameCol[name].width);
-            }
-        });
-        Object.keys(this.ctrlers).map(name => {
-            this.nameCol[name].size(this.nameColWidth);
-        });
+        // Object.keys(this.nameCol).map(name => {
+        //     if (this.ctrlers[name].nameAnonymous == false || this.ctrlers[name].hasOwnProperty('rename')) {
+        //         this.nameColWidth = Math.max(this.nameColWidth, this.nameCol[name].width);
+        //     }
+        // });
+        // Object.keys(this.ctrlers).map(name => {
+        //     this.nameCol[name].size(this.nameColWidth);
+        // });
 
+        Object.keys(this.nameCol).map(name => this.nameCol[name].style('max-width: unset;'));
 
-        [...Object.values(this.ctrlerDivs)].map(div => {
-            [...div.elt.querySelectorAll('*')].map(d => {
-                // if (!d.classList.contains('ctrlerName')) { d.style.display = 'flex'; }
-                d.style.color = this.textcolor;
-            })
-        });
+        let nameColWidthArr = Object.keys(this.nameCol).filter(
+            name => this.ctrlers[name].nameAnonymous == false && (!this.ctrlers[name].hasOwnProperty('rename'))
+        ).map(
+            name => this.nameCol[name].elt.clientWidth
+        ).sort(
+            (a, b) => b - a
+        );
+        let nameColWidth = nameColWidthArr[0] + 1;
+        this.ctrlersContainer.elt.style.setProperty("--namecol-w", nameColWidth + 'px');
 
-        let ctrlersDisplayWidth = Object.values(pc.ctrlers).map(v => v.elt.clientWidth + v.elt.offsetLeft).sort((a, b) => b - a)[0];
+        Object.keys(this.nameCol).map(name => this.nameCol[name].style('max-width: var(--namecol-w);'));
 
+        // console.log(nameColWidthArr.join(','), Object.keys(this.ctrlers).pop());
+        // [...Object.values(this.ctrlerDivs)].map(div => {
+        //     [...div.elt.querySelectorAll('*')].map(d => {
+        //         // if (!d.classList.contains('ctrlerName')) { d.style.display = 'flex'; }
+        //         d.style.color = this.textcolor;
+        //     })
+        // });
+
+        Object.keys(this.ctrlers).map(name => this.ctrlers[name].elt.style.setProperty('flex-grow', '0'));
+        let ctrlersDisplayWidths = Object.values(this.ctrlers).map(v => v.elt.clientWidth + v.elt.offsetLeft).sort((a, b) => b - a);
+        let ctrlersDisplayWidth = ctrlersDisplayWidths[0];
         this.#_scrollBarWidth = this.#getScrollBarWidth();
+        let container_w = Math.min(this.ctrlerwidth, ctrlersDisplayWidth) + this.#_scrollBarWidth;
+        if (this.settings.showToolsBoo == true) { container_w = Math.max(this.toolsDiv.elt.clientWidth, container_w); }
+        this.ctrlersContainer.elt.style.setProperty("--container-w", container_w + 2 + 'px');
+        Object.keys(this.ctrlers).map(name => this.ctrlers[name].elt.style.removeProperty('flex-grow'));
 
-        this.ctrlersContainer.elt.style.setProperty("--container-h",
-            this.ctrlersContainer.elt.clientHeight + 'px');
+        let container_h = this.ctrlersContainer.elt.clientHeight;
+        if (this.settings.showToolsBoo == true) { container_h = this.toolsDiv.elt.clientHeight + container_h; }
+        this.ctrlersContainer.elt.style.setProperty("--container-h", container_h + 'px');
 
 
+        // this.ctrlersContainer.elt.style.setProperty("--container-w",     this.ctrlersContainer.elt.clientWidth + 'px');
+        // this.ctrlersContainer.elt.style.setProperty("--container-w", Math.max(this.ctrlerwidth, Math.max(ctrlersDisplayWidth, this.settings.showToolsBoo == true ? this.toolsDiv.elt.clientWidth : 0)) + this.#_scrollBarWidth + 'px');
 
-        // this.ctrlersContainer.elt.style.setProperty("--container-w",
-        //     this.ctrlersContainer.elt.clientWidth + 'px');
-        this.ctrlersContainer.elt.style.setProperty("--container-w",
-            Math.min(this.ctrlerwidth, Math.max(ctrlersDisplayWidth, this.toolsDiv.elt.clientWidth)) + this.#_scrollBarWidth + 'px');
-
+        //  console.log(ctrlersDisplayWidths, ctrlersDisplayWidth, this.#_scrollBarWidth, container_w, this.settings.showToolsBoo == true ? this.toolsDiv.elt.clientWidth : 0);
 
     };
 
@@ -512,6 +537,10 @@ class PC {
             ['input', 'change'].map(ev => {
                 this.ctrlers[name].elt.addEventListener(ev, _ => {
                     this.valueCol[name].elt.innerText = this.getCtrlerVal(name);
+                    let minW = this.valueCol[name].elt.style.getPropertyValue('min-width');
+                    minW = minW.match(/\d*/) ? Number(minW.match(/\d*/)) : 0;
+                    minW = Math.max(minW, this.valueCol[name].elt.clientWidth);
+                    this.valueCol[name].elt.style.setProperty('min-width', minW + 'px');
                 });
             });
         }
@@ -754,6 +783,8 @@ defaultVal, minVal, maxVal, precision need number`);
 
 
     #radioBeautify(name) {
+
+        // TODO 
         const inputs = [...this.ctrlers[name].elt.querySelectorAll('[type="radio"]')].filter(i => i.parentElement != 'label');
         inputs.map(i => {
             const p = i.parentElement;
@@ -776,7 +807,10 @@ defaultVal, minVal, maxVal, precision need number`);
         const div = this.ctrlers[name].elt;
         const lArr = [...div.querySelectorAll('[type="radio"]')].map((i, idx) => i.parentElement);
         const sizeSortArr = lArr.map(l => l.clientWidth).sort((a, b) => b - a);
+
+        div.style.setProperty('min-width', 'unset');
         let dw = div.clientWidth, lwMin = 0, row = 0;
+
 
         while (dw > 0 && sizeSortArr.length > 0) {
             lwMin = sizeSortArr.shift();
@@ -802,6 +836,7 @@ defaultVal, minVal, maxVal, precision need number`);
             });
             this.#updateCtrlerDisplay();
         }
+        div.style.removeProperty('min-width');
 
 
     };
@@ -1015,37 +1050,53 @@ defaultVal, minVal, maxVal, precision need number`);
 
     };
     update(name, value) {
-        // console.log(name, value, this.ctrlers[name], this.ctrlers[name]);
 
         if (value == null ||
             (['select', 'radio'].indexOf(this.ctrlers[name].type) != -1 &&
                 (this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null ||
                     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == undefined)
             )) {
-            // console.log('name: ', name, '\nvalue: ', value, '\n typeof value: ', typeof value, '\nvalue == null :', value == null, '  \n',
-            //     'this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null , undefined :  ',
-            //     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null,
-            //     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == undefined);
+            console.log('name: ', name, '\nvalue: ', value, '\n typeof value: ', typeof value, '\nvalue == null :', value == null, '  \n',
+                'this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null , undefined :  ',
+                this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null,
+                this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == undefined);
             return;
         }
 
         switch (this.ctrlers[name].type) {
             case 'checkbox':
-                this.ctrlers[name].elt.querySelector('input').checked = (value == 'true') || value != false;
-                this.ctrlers[name].elt.querySelector('label').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
+                let boo = (Boolean(value) == true) && value != "false" && value != this.ctrlers[name].labelText.false;
+                try {
+                    console.log(boo);
+                    this.ctrlers[name].checked(boo);
+                } catch (err) {
+                    this.ctrlers[name].elt.querySelector('input').checked = boo;
+                    this.ctrlers[name].elt.querySelector('label').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
+                    console.log(`updating ${name} error, and clicked it`);
+                }
                 break;
             case 'select':
                 this.ctrlers[name].elt.querySelector(`[value="${value}"]`).selected = true;
             case 'radio':
-                this.ctrlers[name].elt.querySelector(`[value="${value}"]`).click();
+                try {
+                    let before = this.ctrlers[name].value();
+                    this.ctrlers[name].selected(value);
+                    let after = this.ctrlers[name].value();
+                    if (before == after) { throw ('the selected does not work.'); }
+                } catch (err) {
+                    this.ctrlers[name].elt.querySelector(`[value="${value}"]`).click();
+                    console.log(`updating ${name} error, and clicked it`);
+                };
                 break;
             default:
                 this.ctrlers[name].elt.value = value;
                 break;
         }
+
         if (name in this.valueCol) {
             this.valueCol[name].elt.innerText = this.getCtrlerVal(name);
         }
+
     };
 
     disable(name) {
@@ -1075,6 +1126,7 @@ defaultVal, minVal, maxVal, precision need number`);
         this.ctrlers[name].elt.step = precisionNum;
     };
 
+    // TODO 增加一个初始化参数，允许适应显示名称的宽度
     displayName(name, displayname) {
         if (name in this.ctrlers || name in this.groups) {
             if (name in this.groups) {
@@ -1161,7 +1213,7 @@ defaultVal, minVal, maxVal, precision need number`);
         });
         return window[varName];
     };
-    variablesStr() {
+    #variablesStr() {
 
         let result = 'var ';
         Object.keys(this.ctrlers).map((k, idx, arr) => {
@@ -1174,16 +1226,17 @@ defaultVal, minVal, maxVal, precision need number`);
                 result += `${k}=${v}`;
             }
             if (idx < arr.length - 1) {
-                result += ',';
+                result += ' ,, ';
             }
         });
-        result = result.replace(/,/g, ',\n\t') + ';';
+        console.log(result);
+        result = result.replace(/\n/g, '\\n').replace(/,,/g, ',\n\t') + ';';
         this.#copyStr(result);
         return result;
     };
 
-    toJson() {
-        let result = '{';
+    #toJson() {
+        let result = '';
         Object.keys(this.ctrlers).map((k, idx, arr) => {
             let v = this.getCtrlerVal(k);
             if (v == '') {
@@ -1195,15 +1248,15 @@ defaultVal, minVal, maxVal, precision need number`);
                 result += `"${k}":${v}`;
             }
             if (idx < arr.length - 1) {
-                result += ',';
+                result += ',,';
             }
         });
-        result = result.replace(/,/g, ',\n\t') + '}';
+        result = 'let pc=new PC();\n...\nlet preset={' + result.replace(/\n/g, '\\n').replace(/,,/g, ',\n\t') + '};\npc.load(preset);';
         this.#copyStr(result);
         return result;
     };
-    renew(varname) {
-        let result = `var ${varname} ; \n${varname}=new PC(${this.displayBoo});\n`;
+    #renew(varname) {
+        let result = `var ${varname} ; \n${varname}=new PC(${JSON.stringify(this.settings, ' ', 2)});\n`;
 
         Object.keys(this.ctrlers).map((k, idx, arr) => {
             let args = this.objArgs[k];
@@ -1699,10 +1752,8 @@ defaultVal, minVal, maxVal, precision need number`);
         targetDom.appendChild(scroll);
         const scrollInWidth = scrollIn.offsetWidth;
         const scrollWidth = scroll.offsetWidth;
-        const tmp = setTimeout(() => {
-            targetDom.removeChild(scroll);
-            clearTimeout(tmp);
-        }, 10);
+        targetDom.removeChild(scroll);
+
         return scrollWidth - scrollInWidth;
     };
 
@@ -1836,5 +1887,29 @@ defaultVal, minVal, maxVal, precision need number`);
     title(title) {
         this.mainContainer.elt.querySelector(`#${this.id + '_header'} p`).innerText = title;
         return this;
+    }
+
+    stick(position) { //stick to a side; position allow a string  one of  top / right / bottom / left
+        let oppositeSide;
+        switch (position) {
+            case 'top':
+                oppositeSide = 'bottom';
+                break;
+            case 'bottom':
+                oppositeSide = 'top';
+                break;
+            case 'left':
+                oppositeSide = 'right';
+                break;
+            case 'right':
+                oppositeSide = 'left'
+                break;
+            default:
+                position = 'top';
+                oppositeSide = 'bottom';
+        }
+        this.mainContainer.elt.style.setProperty(position, '0');
+        this.mainContainer.elt.style.setProperty(oppositeSide, 'unset');
+        this.mainContainer.elt.setAttribute('stick', position);
     }
 }

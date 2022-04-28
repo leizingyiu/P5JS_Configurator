@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/04/18 18:49:25"
+// Last modified: "2022/04/28 16:30:40"
 
 class PC {
     constructor(settings = {
@@ -41,6 +41,7 @@ class PC {
 
         this.name = 'p5js_Ctrler';
         this.id = this.name;
+        this.version = '0.0.1';
         let existedDom = document.querySelectorAll(`[id*=${this.id}]`);
         if (existedDom.length > 0) {
             existedDom = [...existedDom].filter(dom => ['inner', 'header'].every(n => dom.id.indexOf(n) == -1));

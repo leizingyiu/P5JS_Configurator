@@ -70,8 +70,10 @@ loadReadmeFile = () => {
     style.innerHTML = `#${p.id}{
 margin: 0;
 max-height: 100vh;
+min-height: 90vh;
 max-width: 48vw;
 min-width: 400px;
+opacity:1;
 
 padding: 1em;
 overflow: scroll;
@@ -83,6 +85,14 @@ background-color: #ffffffcc;
 
 white-space: inherit;
 word-break: break-all;
+transition: max-width 0.5s ease ,
+min-width 0.5s ease ,
+max-height 0.5s ease ,
+min-height 0.5s ease ,
+padding 0.5s ease ,
+margin 0.5s ease ,
+border 0.5s ease ,
+opacity 0.5s ease ;
 }
 
 #${p.id}.mob {
@@ -96,6 +106,14 @@ transform: translate(-50%,0);
 overflow: auto;
 }
 
+#${p.id}.hide{
+    max-width:0;
+    min-width:0;
+    opacity:0;
+    padding: 0;
+    margin:0;
+    border:0;
+}
 `;
 
     [p, style].every(dom => document.body.appendChild(dom));

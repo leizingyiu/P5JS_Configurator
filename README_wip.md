@@ -2,8 +2,9 @@ english : <https://github.com/leizingyiu/p5js_Ctrler/blob/main/README_en.md>
 # PC - p5js Ctrler - Variable controller for p5js
 一个可以在 p5js 运行时，实时操控代码变量的插件。  
     
-查看效果: <https://leizingyiu.github.io/p5js_Ctrler/index.html>  
-马上试试: <https://openprocessing.org/sketch/1537105>  
+查看较旧版本：<https://leizingyiu.github.io/p5js_Ctrler/index.html>    
+查看范例：<https://leizingyiu.github.io/p5js_Ctrler/examples.html>    
+马上试试：<https://openprocessing.org/sketch/1537105>  
   
 ## 目录  
 - [示例](#示例)  
@@ -18,34 +19,86 @@ english : <https://github.com/leizingyiu/p5js_Ctrler/blob/main/README_en.md>
 
 
 ## 示例
+
+以下是一些最基础的功能，你可以复制下面的代码到你的 sketch 中试试  
+
 ```javascript
-let pc,btnN=0,txt='',preset;
-pc = new PC({ displayBoo: true, updateWithUrlBoo: true, updateWithCookieBoo: true, autoHide: true });
-preset = {
-  '_slider': 99, '_sel': 'sel c', '_radio': 'radio b', '_color': '#ffaa00'
-};
 
-pc.slider('_slider', 20, 0, 100, 1);
-pc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e); });
-pc.button('_button', 'btnText', () => {btnN++;console.log('button clicked');});
-pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {console.log('box clicked');});
-pc.select('_sel', ['sel a', 'sel b', 'sel c'], );
-pc.radio('_radio', ['radio a', 'radio b', 'radio c'], );
-pc.color('_color', '#fff');
-pc.input('txtInput', 'sth wanner say');
-pc.fileinput('loadTxt', (e) => {
-  console.log(e.data);
-  let l = loadStrings(e.data, (arr) => {
-    txt = arr.join('\n');
-    console.log(txt);
-  });
-});
+let pc, btnN = 0, txt = '', preset;
 
-pc.load(preset);
+function preload() {
+    pc = new PC({
+        displayBoo: true, updateWithUrlBoo: true,
+        updateWithCookieBoo: true, autoHideBoo: true
+    });
+
+    preset = {
+        'rect_p': 48, 'rect_stroke_weight': '10',
+        'rect_stroke_color': '#000', '_color': '#ffaa00'
+    };
+
+    pc.slider('rect_p', 20, 0, 400, 1);
+
+    pc.slider('rect_w', 40, 0, 400, 1,
+        (e) => { console.log(e); });
+
+    pc.button('random_rect_p', 'random it !',
+        () => {
+            rect_p = Math.random() * Math.min(width, height);
+        });
+
+    pc.checkbox('rect_stroke_boo', false, ['stroke', 'noStroke'],
+        () => { console.log('box clicked'); });
+
+    pc.select('rect_stroke_weight', ['10', '20', '40'],);
+
+    pc.radio('rect_stroke_color', ['#000', '#369', '#fff'], () => {
+        rect_stroke_boo = true;
+    });
+
+    pc.color('_color', '#fff');
+
+    pc.input('txtInput', 'this is a p5js_ctrler demo');
+
+    pc.fileinput('loadTxt', (e) => {
+        console.log(e.data);
+        let l = loadStrings(e.data, (arr) => {
+            txt = arr.join('\n');
+            console.log(txt);
+        });
+    });
+
+    pc.load(preset);
+}
+
+function setup() {
+    createCanvas(400, 400);
+}
+
+function draw() {
+    background(_color);
+
+    if (rect_stroke_boo == false) {
+        noStroke();
+    } else {
+        strokeWeight(rect_stroke_weight);
+        stroke(rect_stroke_color);
+    }
+    rectMode(CORNER);
+    rect(rect_p, rect_p, rect_w, rect_w);
+
+    noStroke();
+    textAlign(LEFT, TOP);
+    text(txtInput, 0, 0);
+    text(txt, width / 2, height / 2, width / 2, height * 2);
+}
+
 ```
 
 
 ## 初始化
+
+初始化时，可设置具体参数，也可留空，程序将自动使用以下默认参数。
 ``` javascript
   pc = new PC({
     displayBoo: true,                     //是否显示设置框，如设置 false 则不显示   
@@ -54,7 +107,7 @@ pc.load(preset);
 
     updateWithCookieBoo: true,            //是否同步更新cookie，并且初始化时读取cookie，如设置 false 则不写入、不读取
 
-    autoHideBoo: true,                       //是否自动隐藏，如设置false，则不会自动隐藏
+    autoHideBoo: true,                    //是否自动隐藏，如设置false，则不会自动隐藏
 
     showToolsBoo: true,                   //是否显示工具按钮，如设置false，则不现实顶部工具按钮
 
@@ -74,9 +127,12 @@ pc.load(preset);
   });
 ```
 
-
+p5js_ctrler 依赖于 p5js，请在 preload 或者 setup 中初始化。 
 
 ## 不同的使用风格
+
+本插件可以以下几种风格使用：  
+
 ### 命令式
 ```javascript
 pc=new PC();
@@ -113,12 +169,18 @@ pc.slider('_slider', 20, 0, 100, 1)
 - 添加说明文本: [alt](#添加说明文本)  
 
 可被 [编组](#编组功能) 声明方或链式调用的方法有: 
-- 新建控制器，及水平线:  slider, button, checkbox, select, radio, color, input, textarea, fileinput, hr
+- 新建控制器，及水平线:  [slider](#slider), [button](#button), [checkbox](#checkbox), [select](#select), [radio](#radio), [color](#color), [input](#input), [textarea](#textarea), [fileinput](#fileinput), [hr](#hr)
 - 修改控制器名称: [displayName](#更改显示名称) 
 
 ## 控制器功能
 
-### 滑块 
+以下控制器使用时，可参照罗列出来的参数使用；  
+也可直接不写任何参数，在后续过程中定义显示名称（[displayName](#displayName)），以及定义指向控制器的值的变量，并用变量操控控制器（[var](#var)）。  
+不写任何参数时，默认定义一个名称为 “p5js_ctrler”加一串随机数 的变量。    
+
+### 滑块
+#### slider 
+当使用滑块时，不填写最小值、最大值、精度（minVal、maxVal、precision）时，可在后续过程中用 [range](#range) [precision](#precision) 进行设置。
 ```javascript
 pc.slider(name, defaultVal, minVal = 0, maxVal = 2 * defaultVal, precision = defaultVal / 10, fxn = () => { })
 ```
@@ -133,6 +195,7 @@ pc.slider('_slider2', 0, -20, 20, 1, (e) => { console.log(e)});
 
 
 ### 按钮
+#### button
 ```javascript
 pc.button(name, btnText, fxn = () => { })
 ```
@@ -144,6 +207,7 @@ pc.button('_button', 'btnText', () => { console.log('button clicked'); });
 
 
 ### 多选器
+#### checkbox
 ```javascript
 pc.pc.checkbox(name, defaultVal = false, labelText = ['yes', 'no'], fxn = () => { })
 ```
@@ -156,6 +220,7 @@ pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {console.log('box clic
 
 
 ### 下拉菜单
+#### select
 ```javascript
 select(name, options = [], fxn = () => { })
 ```
@@ -167,6 +232,7 @@ pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
 
 
 ### 单选器
+#### radio
 ```javascript
 pc.radio(name, options = [], fxn = () => { }) 
 ```
@@ -178,6 +244,7 @@ pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
 
 
 ### 拾色器
+#### color
 ```javascript
 pc.color(name, defaultVal = '#369') 
 ```
@@ -189,6 +256,7 @@ pc.color('_color', '#fff');
 
 
 ### 输入框
+#### input
 ```javascript
 pc.input(name, defaultVal = '', fxn = () => { }) 
 ```
@@ -200,6 +268,7 @@ pc.input('txtInput', 'sth wanner say');
 
 
 ### 文本框
+#### textarea
 ```javascript
 pc.textarea(name, defaultVal = '', fxn = () => { })
 ```
@@ -211,6 +280,7 @@ pc.textarea('textArea', 'a long long long long sentence');
 
 
 ### 文件选择器
+#### fileinput
 ```javascript
 pc.fileinput(name, fxn = () => { }) 
 ```
@@ -228,6 +298,7 @@ pc.fileinput('loadTxt', (e) => {
 
 
 ### 水平线
+#### hr
 ```javascript
 pc.hr()
 ```
@@ -239,39 +310,57 @@ pc.hr();
 
 
 ## 编组功能
-
+### group
 ```javascript
-grp = pc.group('groupName');
-
-/*___或者___*/
-variable=value;
+ pc.group('groupName');
 ```
 
 #### 示例
 ```javascript
 pc = new PC();
-pc.slider('_slider', 0, -20, 20, 1);
-pc.update('_slider', 10);
+grp = pc.group();
+grp.displayName('编组名称');
+grp.slider('grpSlider', 1);
+grp.select('grpSelect', ['grpSel_A', 'grpSel_B', 'grpSel_C']);
+grp.radio('grpRadio', ['grpRadio_D', 'grpRadio_E']);
 
 /*——或者——*/
-_slider = 10;
+ pc.group()
+    .displayName('编组名称');
+    .slider('grpSlider', 1)
+    .select('grpSelect', ['grpSel_A', 'grpSel_B', 'grpSel_C'])
+    .radio('grpRadio', ['grpRadio_D', 'grpRadio_E']);
 ```
 
 
 
 ## 操作功能
+
 控制器功能返回的是控制器自身，以下操作功能可在控制器后做链式函数操作
 ```javascript
-c = new PC();
-pc.slider('_slider', 0, -20, 20, 1, (e) => { console.log(e)});
+pc = new PC();
+pc.slider('_slider', 0, -20, 20, 1);
 pc.update('_slider', 10);
+pc.range('_slider',-100,100);
+pc.precision('_slider',0.01);
+pc.displayName('_slider','滑块');
+pc.alt('_slider','这是一个滑块');
 
 /*链式函数形式*/
-pc.slider('_slider', 0, -20, 20, 1, (e) => { console.log(e)}).update(10);
+pc.slider('_slider', 0, -20, 20, 1)
+  .update(10)
+  .range(-100,100)
+  .precision(0.01)
+  .displayName('滑块')
+  .alt('这是一个滑块');
+
+/* 或者写成一行 */
+pc.slider('_slider', 0, -20, 20, 1).update(10).range(-100,100).precision(0.01).displayName('滑块').alt('这是一个滑块');
+
 ```
 
 ### 更新
-
+#### update
 ```javascript
 pc.update('variable', value);
 
@@ -291,6 +380,8 @@ _slider = 10;
 
 
 ### 启用与禁用
+#### enable
+#### disable
 ```javascript
 pc.enable(name);
 pc.disable(name);
@@ -304,11 +395,39 @@ pc.disable('_slider');
 pc.enable('_slider');
 ```
 
+可在控制器中的回调函数中，控制其他控制器是否可用，譬如：
+```javascript
+pc=new PC();
+
+pc.slider('_slider');
+pc.radio('_radio',['yes','no'],(e)=>{
+  let v = e.path[0].value;
+  switch (v) {
+    case 'no':
+      pc.disable('_slider');
+      break;
+    case 'yes':
+      pc.enable('_slider');
+      break;
+  }
+})
+```
+
 ### 调整(滑块控制器)范围
+#### range
 ```javascript
 pc.range(name, min, max);
 ```
+
+#### 示例
+```javascript
+pc = new PC();
+pc.slider('_slider', 0, -20, 20, 1);
+pc.range('_slider', -100, 100);
+```
+
 ### 调整(滑块控制器)精度
+#### precision
 ```javascript
 pc.precision(name, precisionNum);
 ```
@@ -321,6 +440,7 @@ pc.precision('_slider', 0.1);
 ```
 
 ### 获取控制器的值
+#### getCtrlerVal
 ```javascript
 pc.getCtrlerVal(name);
 ```
@@ -335,8 +455,8 @@ let val=pc.getCtrlerVal('_slider');
 let val=_slider;
 ```
 
-
 ### 更改显示名称
+#### displayName
 ```javascript
 pc.displayName(name,displayname);
 ```
@@ -350,7 +470,8 @@ pc.displayName('_slider','滑块');
 pc.group()
 ```
 
-### 声明变量
+### 声明变量，指向控制器
+#### var
 ```javascript
 pc.var(name, variableName);
 ```
@@ -363,7 +484,18 @@ pc.var('_slider', 'sld');
 sld=10;
 console.log(sld);
 ```
+此功能可搭配“匿名”控制器使用，譬如
+```javascript
+pc=new PC();
+theSlider=pc.slider().displayName('滑块的显示名称');
+
+...
+
+theSlider.var('variableOfSlider');
+```
+
 ### 添加说明文本
+#### alt
 ```javascript
 pc.alt(name, altText);
 ```
@@ -377,10 +509,11 @@ pc.alt('_slider', 'this is a slider');
 
 
 ## 工具按钮
-### var
+
+### [ var ]
 生成 var 语句，方便参数脱离此插件使用。
 
-### toJson
+### [ toJson ]
 生成 json 。 可生成多套 json 参数，并通过 load() 加载。
 
 #### 示例
@@ -392,21 +525,23 @@ pc.checkbox('boo',false);
 pc.load(preset);
 ```
 
-### renew
+### [ renew ]
 根据当前参数，重新生成 new PC 以及后续设置语句
 
-### reset
+###  [ reset ]
 重置所有参数，将参数回归到代码中的设置，并且清理地址栏中的参数
 
-### generaUrl
+###  [ generaUrl ]
 将当前参数更新到网址中，以便分享带参数的网址
 
  
 
 ## 引用及感谢
 
-这个项目最初只是为了把自己在 <a href='https://openprocessing.org/user/150269/'>openprocessing</a> 的东西，下载回来在本地也能用 <a href='https://github.com/msawired/OPC/'>OPC</a> 的滑块。  
+这个项目最初只是为了把自己在 <a href='https://openprocessing.org/user/150269/'>openprocessing</a> 的东西，下载回来在本地也能用 <a href='https://github.com/msawired/OPC/'>OPC</a> 的滑块。    
+  
 可以说，这个项目当时是基于 OPC 的参考，并进行延伸。感谢 OPC 作者 <a href='https://github.com/msawired'>Sinan Ascioglu</a>。    
+  
 当 sketch 从 openprocessing 下载下来后，只需在开头声明变量 OPC 、 在 preload 中先初始化自己的 p5js_Ctrler ，就可以继续使用滑块。如下面的注释部分: 
 ```javascript
 // https://openprocessing.org/sketch/1414246
@@ -423,12 +558,13 @@ function preload() {
 	OPC.slider('posSteps', 10, 0, 100, 1);
 }
 ```
-
-其中拖拽功能参考 runoob.com 的案例: <https://c.runoob.com/codedemo/5370/>  
-
-其中将 name 转换成变量名称的部分，参考 OPC 源码: <https://github.com/msawired/OPC/blob/61287403522196ea6c0354a3e3850bc4c853d0b9/opc.js>
   
-感谢优设的小伙伴为文案提供帮助  
-感谢 processing.love 的群主及群友，在技术上提供的帮助
+其中拖拽功能参考 runoob.com 的案例: <https://c.runoob.com/codedemo/5370/>    
+  
+其中将 name 转换成变量名称的部分，参考 OPC 源码: <https://github.com/msawired/OPC/blob/61287403522196ea6c0354a3e3850bc4c853d0b9/opc.js>  
+    
+感谢优设的小伙伴为文案提供帮助    
+  
+感谢 processing.love 的群主及群友，在技术上提供的帮助  
   
 如发现问题，请及时提出指正，感谢！

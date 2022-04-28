@@ -3,7 +3,8 @@ english : <https://github.com/leizingyiu/p5js_Ctrler/blob/main/README_en.md>
 一个可以在 p5js 运行时，实时操控代码变量的插件。  
     
 查看效果：<https://leizingyiu.github.io/p5js_Ctrler/index.html>    
-
+查看最新版本：<https://leizingyiu.github.io/p5js_Ctrler/index_wip.html>    
+查看范例：<https://leizingyiu.github.io/p5js_Ctrler/examples.html>    
 马上试试：<https://openprocessing.org/sketch/1537105>  
   
 ## 目录  
