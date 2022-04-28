@@ -11,14 +11,34 @@ english : <https://github.com/leizingyiu/p5js_Ctrler/blob/main/README_en.md>
 - [初始化](#初始化)  
 - [不同的使用风格](#不同的使用风格)
 - [控制器功能](#控制器功能)  
+  - 滑块  [slider](#slider)
+  - 按钮  [button](#button)
+  - 多选器  [checkbox](#checkbox)
+  - 下拉菜单  [select](#select)
+  - 单选器  [radio](#radio)
+  - 拾色器  [color](#color)
+  - 输入框  [input](#input)
+  - 文本框  [textarea](#textarea)
+  - 文件选择器  [fileinput](#fileinput)
+  - 水平线  [hr](#hr)
 - [编组功能](#编组功能)  
-- [操作功能](#操作功能)  
+- [操作功能](#操作功能) 
+  - 更新 [update](#update)
+  - 启用与禁用 [enable](#enable) [disable](#disable)
+  - 调整<small>(滑块控制器)</small>范围 [range](#range)
+  - 调整<small>(滑块控制器)</small>精度 [precision](#precision)
+  - 获取控制器的值 [getCtrlerVal](#getCtrlerVal)
+  - 更改显示名称 [displayName](#displayName)
+  - 声明变量，指向控制器 [var](#var)
+  - 添加说明文本 [alt](#alt)
+  - 更改控制器标题 [title](#title)
 - [工具按钮](#工具按钮)  
 - [引用及感谢](#引用及感谢)  
   
-
+  
 
 ## 示例
+返回[目录](#目录)  
 
 以下是一些最基础的功能，你可以复制下面的代码到你的 sketch 中试试  
 
@@ -97,6 +117,7 @@ function draw() {
 
 
 ## 初始化
+返回[目录](#目录)  
 
 初始化时，可设置具体参数，也可留空，程序将自动使用以下默认参数。
 ``` javascript
@@ -130,7 +151,8 @@ function draw() {
 p5js_ctrler 依赖于 p5js，请在 preload 或者 setup 中初始化。 
 
 ## 不同的使用风格
-
+返回[目录](#目录)   
+  
 本插件可以以下几种风格使用：  
 
 ### 命令式
@@ -173,7 +195,8 @@ pc.slider('_slider', 20, 0, 100, 1)
 - 修改控制器名称: [displayName](#更改显示名称) 
 
 ## 控制器功能
-
+返回[目录](#目录)    
+  
 以下控制器使用时，可参照罗列出来的参数使用；  
 也可直接不写任何参数，在后续过程中定义显示名称（[displayName](#displayName)），以及定义指向控制器的值的变量，并用变量操控控制器（[var](#var)）。  
 不写任何参数时，默认定义一个名称为 “p5js_ctrler”加一串随机数 的变量。    
@@ -310,6 +333,7 @@ pc.hr();
 
 
 ## 编组功能
+返回[目录](#目录)  
 ### group
 ```javascript
  pc.group('groupName');
@@ -335,6 +359,7 @@ grp.radio('grpRadio', ['grpRadio_D', 'grpRadio_E']);
 
 
 ## 操作功能
+返回[目录](#目录)  
 
 控制器功能返回的是控制器自身，以下操作功能可在控制器后做链式函数操作
 ```javascript
@@ -466,8 +491,6 @@ pc.displayName(name,displayname);
 pc = new PC();
 pc.slider('_slider', 0, -20, 20, 1);
 pc.displayName('_slider','滑块');
-
-pc.group()
 ```
 
 ### 声明变量，指向控制器
@@ -507,8 +530,22 @@ pc.slider('_slider', 0, -20, 20, 1);
 pc.alt('_slider', 'this is a slider');
 ```
 
+### 更改控制器标题
+#### title
+```javascript
+pc.title(titlename);
+```
+
+#### 示例
+```javascript
+pc = new PC();
+pc.slider('_slider', 0, -20, 20, 1);
+pc.title('theCtrlerName');
+```
+
 
 ## 工具按钮
+返回[目录](#目录)  
 
 ### [ var ]
 生成 var 语句，方便参数脱离此插件使用。
@@ -537,6 +574,7 @@ pc.load(preset);
  
 
 ## 引用及感谢
+返回[目录](#目录)   
 
 这个项目最初只是为了把自己在 <a href='https://openprocessing.org/user/150269/'>openprocessing</a> 的东西，下载回来在本地也能用 <a href='https://github.com/msawired/OPC/'>OPC</a> 的滑块。    
   
