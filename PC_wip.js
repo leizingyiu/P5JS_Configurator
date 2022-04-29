@@ -383,6 +383,10 @@ class PC {
                         transition:height var(--transition-time) ease;
                     }
 
+                    #${this.id} div.group.disable{
+                       opacity:0.5;
+                    }
+
                     #${this.id} div.group.hide{
                         height:var(--title-height)!important;
                         overflow:hidden;
@@ -507,6 +511,7 @@ class PC {
                 },
                 set(newValue) {
                     that.update(name, newValue);
+                    that.#updateValueCol(name);
                 }
             });
         }
@@ -523,31 +528,35 @@ class PC {
 
         ['focus', 'focusin', 'change', 'input'].map(e => {
             this.ctrlers[name].elt.addEventListener(e, () => {
-                this.mainContainer.elt.classList.add(this.activeClassName);
+                that.mainContainer.elt.classList.add(that.activeClassName);
             });
         });
 
         ['blur', 'focusout'].map(e => {
             this.ctrlers[name].elt.addEventListener(e, () => {
-                this.mainContainer.elt.classList.remove(this.activeClassName);
+                that.mainContainer.elt.classList.remove(that.activeClassName);
             });
         });
 
         if (['slider', 'color'].indexOf(this.ctrlers[name].type) != -1) {
             ['input', 'change'].map(ev => {
                 this.ctrlers[name].elt.addEventListener(ev, _ => {
-                    this.valueCol[name].elt.innerText = this.getCtrlerVal(name);
-                    let minW = this.valueCol[name].elt.style.getPropertyValue('min-width');
-                    minW = minW.match(/\d*/) ? Number(minW.match(/\d*/)) : 0;
-                    minW = Math.max(minW, this.valueCol[name].elt.clientWidth);
-                    this.valueCol[name].elt.style.setProperty('min-width', minW + 'px');
+                    that.#updateValueCol(name);
                 });
             });
         }
 
 
     };
-
+    #updateValueCol(name) {
+        this.valueCol[name].elt.innerText = this.getCtrlerVal(name);
+        let originMinW = this.valueCol[name].elt.style.getPropertyValue('min-width');
+        originMinW = originMinW.match(/\d*/) ? Number(originMinW.match(/\d*/)) : 0;
+        let minW = Math.max(originMinW, this.valueCol[name].elt.clientWidth);
+        if (originMinW != minW) {
+            this.valueCol[name].elt.style.setProperty('min-width', minW + 'px');
+        }
+    }
     #nameAndVal = function (name) {
 
         this.nameCol[name] = createSpan(`${name}`);
@@ -562,13 +571,23 @@ class PC {
         Object.keys(this.groups).map(groupname => this.#groupHeightUpdate(groupname))
     };
     #checkCtrlerName(name) {
+        
+        let illegalNameBoo=!name||Boolean(name)==false||typeof name=='undefined'||name===false||name==null||typeof name =='string'&&!name[0].match(/[a-zA-Z_$]/);
+        // console.log(typeof name =='string' ,typeof name =='string'&&!name[0].match(/[a-zA-Z_$]/));
         if (name in this.ctrlers) {
             throw (`"${name}" :A ctrler with this name already exists`);
             return false;
+        }else if(illegalNameBoo){
+            let beforeName=name;
+            name=this.#randomName();
+            console.log(`name ${beforeName} is not legal, it has beem renamed to ${name}`);
+            return  name;
         }
         return true;
     };
     #initCtrler = function (name, parent = this.#_parentTarget) {
+       
+        this.ctrlers[name].name=name;
         this.ctrlerDivs[name] = createDiv();
         this.ctrlerDivs[name].class('ctrler');
         this.#nameAndVal(name);
@@ -635,16 +654,13 @@ class PC {
         }
     };
 
-    slider(name = 'p5js_ctrler_slider', defaultVal = 1, minVal = Math.min(0, defaultVal), maxVal = 2 * Math.max(minVal, defaultVal, 1), precision = Math.max(maxVal, defaultVal, 1) / 10, fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+    slider(name, defaultVal = 1, minVal = Math.min(0, defaultVal), maxVal = 2 * Math.max(minVal, defaultVal, 1), precision = Math.max(maxVal, defaultVal, 1) / 10, fxn = () => { }) {
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
+
         switch (true) {
             case maxVal < minVal:
                 throw (`" slider(${arguments}) " -----
@@ -669,15 +685,12 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     button(name = 'p5js_ctrler_btn', btnText = 'btn', fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
+
 
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createButton(btnText);
@@ -690,14 +703,12 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     checkbox(name = 'p5js_ctrler_checkbox', defaultVal = false, labelText = ['yes', 'no'], fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
+
 
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createCheckbox(name, defaultVal);
@@ -723,14 +734,12 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     select(name = 'p5js_ctrler_select', options = [], fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
+
 
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createSelect(name);
@@ -746,19 +755,15 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     radio(name = 'p5js_ctrler_radio', options = [], fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
 
+
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createRadio(name);
-
-
 
         options.map(o => {
             if (o instanceof Array) {
@@ -841,12 +846,9 @@ defaultVal, minVal, maxVal, precision need number`);
 
     };
     color(name = 'p5js_ctrler_color', defaultVal = '#369', fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
 
@@ -861,12 +863,9 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     input(name = 'p5js_ctrler_input', defaultVal = '', fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
 
@@ -881,14 +880,12 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     textarea(name = "p5js_ctrler_textarea", defaultVal = '', fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
+
 
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createElement('textarea', defaultVal);
@@ -930,15 +927,11 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     fileinput(name = "p5js_ctrler_fileinput", fxn = () => { }) {
-        if (name && !this.#checkCtrlerName(name)) {
-            return;
-        }
-        let nameAnonymous = false;
-        if (arguments.length == 0) {
-            name += this.#randomSuffix();
+        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
+            name =nameCheckingResult;
             nameAnonymous = true;
         }
-
         this.#recordArgs(...arguments);
         this.ctrlers[name] = createFileInput(fxn);
         this.ctrlers[name].type = 'fileinput';
@@ -948,16 +941,27 @@ defaultVal, minVal, maxVal, precision need number`);
         return this.ctrlers[name];
     };
 
-    hr() {
+    hr(borderStyle='-',borderWidth='1px') {
         const hr = createElement('hr', '');
+        let styleDict={
+            '': 'none', ' ': 'none', '.': 'dotted', '-': 'dashed', '_': 'solid', '=': 'double', 'v': 'groove', 'V': 'groove', 'A': 'ridge', '^': 'ridge', '<': 'inset', '>': 'outset', '[': 'inset', ']': 'outset'
+        }, style;
+        if(Object.keys(styleDict).indexOf(borderStyle)!=-1){style=styleDict[borderStyle];}else if(Object.values(styleDict).indexOf(borderStyle)!=-1){style=borderStyle;};
+        if(typeof borderWidth=='number'){borderWidth=borderWidth+'px';
+        }else if(!borderWidth.match(/\d{1,}(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vh|vmin|vmax|%)/)){
+        console.log(`hr(borderStyle='-',borderWidth='1px'): borderWidth require a number or a css length; already set it to default value '1px' `);
+        borderWidth='1px';
+        }
+        hr.style('border-style',style);hr.style('border-width',borderWidth);
         hr.parent(this.ctrlersContainer);
+        return this;
     };
 
 
 
     group(name = "p5js_ctrler_group") {
         if (arguments.length == 0) {
-            name += this.#randomSuffix();
+            name += this.#randomName();
         }
 
         this.#recordArgs(...arguments);
@@ -978,69 +982,92 @@ defaultVal, minVal, maxVal, precision need number`);
         }
         return true;
     };
-    #initGroup = function (name) {
+    #initGroup = function (groupName) {
         let that = this;
 
         {
-            Object.defineProperty(window, name, {
+            Object.defineProperty(window, groupName, {
                 get: function () {
-                    return that.groups[name];
+                    return that.groups[groupName];
                 },
             });
         }
 
 
         let groupFoldFn = (e) => {
-            this.groups[name].elt.classList.toggle("hide");
+            this.groups[groupName].elt.classList.toggle("hide");
         };
-        this.groups[name].class('group');
-        this.groups[name].attribute('groupname', name);
-        this.groups[name].parent(this.ctrlersContainer);
+        this.groups[groupName].class('group');
+        this.groups[groupName].attribute('groupname', groupName);
+        this.groups[groupName].parent(this.ctrlersContainer);
 
-        this.groupNames[name] = createP();
-        this.groupNames[name].class('groupTitle');
-        this.groupNames[name].mouseClicked(groupFoldFn);
+        this.groupNames[groupName] = createP();
+        this.groupNames[groupName].class('groupTitle');
+        this.groupNames[groupName].mouseClicked(groupFoldFn);
 
-        this.groupNames[name].parent(this.groups[name]);
+        this.groupNames[groupName].parent(this.groups[groupName]);
 
-        let nameSpan = createSpan(`${name}`);
+        let nameSpan = createSpan(`${groupName}`);
         nameSpan.class('groupTitleName');
-        nameSpan.parent(this.groupNames[name]);
+        nameSpan.parent(this.groupNames[groupName]);
 
         let switchBtn = createA('javascript:void 0;', '\<');
-        switchBtn.parent(this.groupNames[name]);
+        switchBtn.parent(this.groupNames[groupName]);
 
+        this.groups[groupName].ctrlersList=[];
 
-
-        this.groups[name].elt.style.setProperty('--title-height', this.groupNames[name].elt.clientHeight + 'px');
+        this.groups[groupName].elt.style.setProperty('--title-height', this.groupNames[groupName].elt.clientHeight + 'px');
 
         ['slider', 'button', 'checkbox', 'select', 'radio', 'color', 'input', 'textarea', 'fileinput', 'hr'].map(fn => {
-            this.groups[name][fn] = this.#groupFn(name, fn);
+            this.groups[groupName][fn] = this.#groupCtrlerFn(groupName, fn);
+            
         });
-        this.groups[name].displayName = function (displayname) {
-            that.displayName(name, displayname);
-            return that.groups[name];
+        this.groups[groupName].displayName = function (displayname) {
+            that.displayName(groupName, displayname);
+            return that.groups[groupName];
+        };
 
-        }
+        this.groups[groupName].disable=function(){
+            that.groups[groupName].elt.classList.add('hide');
+            that.groups[groupName].elt.classList.add('disable');
+            that.groupNames[groupName].mouseClicked(()=>{});
+            // console.log(that.groups[groupName].ctrlersList);
+            that.groups[groupName].ctrlersList.map(ctrlerName=>that.ctrlers[ctrlerName].disable());
+        };
+        this.groups[groupName].enable=function(){
+            that.groups[groupName].elt.classList.remove('hide');
+            that.groups[groupName].elt.classList.remove('disable');
+            that.groupNames[groupName].mouseClicked(groupFoldFn);
+            that.groups[groupName].ctrlersList.map(ctrlerName=>that.ctrlers[ctrlerName].enable());
+        };
     };
-    #groupFn = function (name, fn) {
+    #groupCtrlerFn = function (groupName, fn) {
         let that = this;
         return function () {
             let args = [...arguments];
 
-            that.#setParentTarget(that.groups[name]);
+            that.#setParentTarget(that.groups[groupName]);
             // console.log('\n\ngroupFn: ', that, name, fn, that.#_parentTarget);
 
-            let fnResult = that[fn](...args);
+            let ctrlerResult = that[fn](...args);
             that.#setParentTarget();
 
             // console.log(that.groups[name], that.groups[name].elt.clientHeight);
             // that.groups[name].elt.style.height = 'unset';
             // that.groups[name].elt.style.height = String(that.groups[name].elt.clientHeight) + 'px';
 
-            that.#groupHeightUpdate(name);
+            that.#groupHeightUpdate(groupName);
 
-            return that.groups[name];
+            this.ctrlersList.push(ctrlerResult.name);
+            // console.log('name',groupName,'\nthis',this,'\nthat',that,
+            // '\nthat.groups',that.groups,'\nthat.groups[name]',that.groups[groupName],
+            // '\nthat.groups[name].ctrlersList',that.groups[groupName].ctrlersList,
+            // '\nthis.ctrlersList',  this.ctrlersList,
+            // '\nfnResult',ctrlerResult,
+            // '\nfnResult.name',ctrlerResult.name,
+            // );
+
+            return this;
         }
     };
     #groupHeightUpdate(name) {
@@ -1056,18 +1083,19 @@ defaultVal, minVal, maxVal, precision need number`);
                 (this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null ||
                     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == undefined)
             )) {
-            console.log('name: ', name, '\nvalue: ', value, '\n typeof value: ', typeof value, '\nvalue == null :', value == null, '  \n',
-                'this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null , undefined :  ',
-                this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null,
-                this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == undefined);
-            return;
+            // console.log('name: ', name, '\nvalue: ', value, '\n typeof value: ', typeof value, '\nvalue == null :', value == null, '  \n',
+            //     'this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null , undefined :  ',
+            //     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null,
+            //     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == undefined);
+            console.log(`can not fint the value ${value} option or selection in the ctrler[${name}]`);
+            return false;
         }
 
         switch (this.ctrlers[name].type) {
             case 'checkbox':
                 let boo = (Boolean(value) == true) && value != "false" && value != this.ctrlers[name].labelText.false;
                 try {
-                    console.log(boo);
+                    // console.log(boo);
                     this.ctrlers[name].checked(boo);
                 } catch (err) {
                     this.ctrlers[name].elt.querySelector('input').checked = boo;
@@ -1097,22 +1125,26 @@ defaultVal, minVal, maxVal, precision need number`);
             this.valueCol[name].elt.innerText = this.getCtrlerVal(name);
         }
 
+        return this;
     };
 
     disable(name) {
         this.ctrlerDivs[name].elt.classList.add('disable');
         this.ctrlers[name].elt.setAttribute('disabled', true);
+        return this;
     };
 
     enable(name) {
         this.ctrlerDivs[name].elt.classList.remove('disable');
         this.ctrlers[name].elt.removeAttribute('disabled');
+        return this;
     };
 
     range(name, min, max) {
         this.ctrlers[name].elt.setAttribute('min', min);
         this.ctrlers[name].elt.setAttribute('max', max);
         this.update(name, Math.max(Math.min(this.ctrlers[name].elt.value, max), min));
+        return this;
     };
     precision(name, precisionNum) {
         switch (true) {
@@ -1124,6 +1156,7 @@ defaultVal, minVal, maxVal, precision need number`);
                 break;
         }
         this.ctrlers[name].elt.step = precisionNum;
+        return this;
     };
 
     // TODO 增加一个初始化参数，允许适应显示名称的宽度
@@ -1145,6 +1178,7 @@ defaultVal, minVal, maxVal, precision need number`);
             }
         }
         this.#updateCtrlerDisplay();
+        return this;
     };
 
 
@@ -1177,6 +1211,7 @@ defaultVal, minVal, maxVal, precision need number`);
         }
 
         this.#updateCtrlerDisplay();
+        return this;
     };
 
     getCtrlerVal(name) {
@@ -1229,7 +1264,6 @@ defaultVal, minVal, maxVal, precision need number`);
                 result += ' ,, ';
             }
         });
-        console.log(result);
         result = result.replace(/\n/g, '\\n').replace(/,,/g, ',\n\t') + ';';
         this.#copyStr(result);
         return result;
@@ -1399,8 +1433,8 @@ defaultVal, minVal, maxVal, precision need number`);
         domElm.name = name;
         domElm.setAttribute('name', name);
     };
-    #randomSuffix() {
-        return '_' + String(Math.random()).replace(/\./g, '');
+    #randomName() {
+        return 'p5js_ctrler_' + String(Math.random()).replace(/\./g, '');
     };
 
     #dragElement = (elmnt) => {

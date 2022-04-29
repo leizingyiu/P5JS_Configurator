@@ -182,7 +182,7 @@ pc.slider('_slider', 20, 0, 100, 1)
 
 其中可被 [控制器](#控制器功能) 声明式或链式调用的方法有:
 - 赋值: [update](#更新) 
-- 启用 与 禁用: [enable](#启用与禁用) [disable](#启用与禁用)
+- 启用 与 禁用: [enable](#enable) [disable](#disable)
 - 修改滑块范围: [range](#调整(滑块控制器)范围) 
 - 修改滑块精度: [precision](#获取控制器的值) 
 - 修改名称: [displayName](#更改显示名称) 
@@ -193,13 +193,15 @@ pc.slider('_slider', 20, 0, 100, 1)
 可被 [编组](#编组功能) 声明方或链式调用的方法有: 
 - 新建控制器，及水平线:  [slider](#slider), [button](#button), [checkbox](#checkbox), [select](#select), [radio](#radio), [color](#color), [input](#input), [textarea](#textarea), [fileinput](#fileinput), [hr](#hr)
 - 修改控制器名称: [displayName](#更改显示名称) 
+- 启用 与 禁用: [enable](#enable) [disable](#disable)
 
 ## 控制器功能
 返回[目录](#目录)    
   
 以下控制器使用时，可参照罗列出来的参数使用；  
 也可直接不写任何参数，在后续过程中定义显示名称（[displayName](#displayName)），以及定义指向控制器的值的变量，并用变量操控控制器（[var](#var)）。  
-不写任何参数时，默认定义一个名称为 “p5js_ctrler”加一串随机数 的变量。    
+不写任何参数时，默认定义一个名称为 “p5js_ctrler”加一串随机数 的变量。  
+当需要空缺名称而填写后续参数时，可以 null 或 false 替代 name 参数。     
 
 ### 滑块
 #### slider 
@@ -323,14 +325,26 @@ pc.fileinput('loadTxt', (e) => {
 ### 水平线
 #### hr
 ```javascript
-pc.hr()
+pc.hr(borderStyle, borderWidth)
 ```
+
+其中borderStyle为水平线的样式，参数对应线条参考下列表格
+| 参数 | 样式     | 参数 | 样式      |
+| --- | :-----   | :-- | :----    |
+| ''  | 'none'   | ' ' | 'none'   | 
+| '.' | 'dotted' | '-' | 'dashed' | 
+| '_' | 'solid'  | '=' | 'double' | 
+| 'v' | 'groove' | 'V' | 'groove' | 
+| 'A' | 'ridge'  | '^' | 'ridge'  | 
+| '<' | 'inset'  | '[' | 'inset'  |
+| '>' | 'outset' | ']' | 'outset' | 
+
+borderWidth 为水平线的粗细，可填入css的长度数量，如‘0.1em’、‘1px’、‘0.2vh’……
 #### 示例
 ```javascript
 pc = new PC();
-pc.hr();
+pc.hr(borderStyle='-',borderWidth='1px');
 ```
-
 
 ## 编组功能
 返回[目录](#目录)  
@@ -437,6 +451,30 @@ pc.radio('_radio',['yes','no'],(e)=>{
   }
 })
 ```
+这两个方法对组同样有效，当disable一个组的时候，这个组里面的控制器会全部disable，并且这个组会折叠；  
+当enable这个组的时候，组里面的控制器会全部enable，并且这个组会展开。譬如：  
+```javascript
+pc=new PC();
+
+pc.group('the_group')
+  .slider('_slider')
+  .input('_input');
+
+pc.radio('_radio',['en_group','dis_group'],(e)=>{
+  let v = e.path[0].value;
+  switch (v) {
+    case 'no':
+      pc.disable('the_group');
+      break;
+    case 'yes':
+      pc.enable('the_group');
+      break;
+  }
+});
+
+```
+
+
 
 ### 调整(滑块控制器)范围
 #### range
