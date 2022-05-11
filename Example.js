@@ -1,5 +1,5 @@
 // Created: 2022/04/56 16:56:00
-// Last modified: "2022/05/07 02:57:41"
+// Last modified: "2022/05/11 15:58:49"
 
 export var language = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) == -1 ? 'en' : 'cn';
 // var __preload, __setup, __draw,
@@ -98,10 +98,10 @@ export function _preload() {
         resizeCanvas(document.body.clientWidth, windowHeight);
     });
 
-    let exampleUrl='./examples/'+example+'.js';
-    _pc.a('View_code',exampleUrl,exampleUrl).displayName('source:').alt({
-        cn:"☝ 在这里查看示例原码",
-        en:'☝ Check out the sample source code here'
+    let exampleUrl = './examples/' + example + '.js';
+    _pc.a('View_code', exampleUrl, exampleUrl).displayName('source:').alt({
+        cn: "☝ 在这里查看示例原码",
+        en: '☝ Check out the sample source code here'
     }[language]);
 
     document.addEventListener('onpagehide', () => {
@@ -110,7 +110,7 @@ export function _preload() {
     document.addEventListener('onpageshow', () => {
         loop();
     });
-    
+
 
     _pc.stick('top');
 
@@ -136,6 +136,9 @@ export function _setup() {
 
     console.log('example setuped');
 
+    let exampleUrl = './examples/' + example + '.js';
+    _pc.update('View_code', exampleUrl);
+    _pc.ctrlers['View_code'].elt.innerText = exampleUrl;
 }
 
 
