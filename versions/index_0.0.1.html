@@ -1,9 +1,9 @@
 <!-- 
 // Created: 2022/03/07 16:13:00
-// Last modified: "2022/04/28 16:50:12"
+// Last modified: "2022/05/11 15:31:02"
  -->
 <!DOCTYPE html>
-<html >
+<html>
 
 <head>
 
@@ -14,7 +14,9 @@
 
   <script>
     enMdPath = './README_en_0.0.1.md',
-    cnMdPath = './README_0.0.1.md';
+      cnMdPath = './README_0.0.1.md';
+    mdtempletsPath = '../mdTemplets/';
+
   </script>
 </head>
 
@@ -22,8 +24,9 @@
 
   <!-- <p id="readme" class="markdown-body" data-mdFile='./README_en.md'></p> -->
 
-  <script src="https://unpkg.com/@free-side/audioworklet-polyfill/dist/audioworklet-polyfill.js">
-    /* 
+  <script src="../libraries/audioworklet-polyfill.js">
+    /*
+    https://unpkg.com/@free-side/audioworklet-polyfill/dist/audioworklet-polyfill.js
     如果出现sound库在https可以加载，http不能加载，就用这个解决
     If the sound library can be loaded at https but cannot be loaded at http, use this solution
     https://discourse.processing.org/t/p5-sound-on-google-chrome-p5-sound-js-3191-uncaught-in-promise-typeerror-cannot-read-property-addmodule-of-undefined/29939
@@ -32,35 +35,35 @@
     */
   </script>
 
-  <script src="../../libraries/p5.min.js"></script>
-  <script src="../../libraries/p5.sound.min.js"></script>
+  <script src="../libraries/p5.min.js"></script>
+  <script src="../libraries/p5.sound.min.js"></script>
 
-  
+
   <script type="module" src="./PC_0.0.1.js"></script>
   <!-- <script src="./PC_wip.js"></script> -->
   <script type="module" src="./sketch_0.0.1.js"></script>
   <!-- <script src="./sketch_wip.js"></script> -->
 
-  <link rel="stylesheet" href="../../libraries/markdown.css">
+  <link rel="stylesheet" href="../libraries/markdown.css">
 
   <!-- <script type="text/javascript" src="//cdn.jsdelivr.net/npm/marked/marked.min.js"></script> -->
-  <script type="text/javascript" src="../../libraries/marked.min.js"></script>
+  <script type="text/javascript" src="../libraries/marked.min.js"></script>
 
   <!-- <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/atom-one-light.min.css"> -->
-  <link rel="stylesheet" href="../../libraries/atom-one-light.min.css">
+  <link rel="stylesheet" href="../libraries/atom-one-light.min.css">
 
   <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script> -->
-  <script src="../../libraries/highlight.min.js"></script>
+  <script src="../libraries/highlight.min.js"></script>
 
-  <script src="../../util/loadMarkdownFile.js">
+  <script src="../util/loadMarkdownFile.js">
 
   </script>
 
-<script type="module">
-  import {sketch} from './sketch_0.0.1.js'
+  <script type="module">
+    import { sketch } from './sketch_0.0.1.js'
 
-  new p5(sketch);
-</script>
+    new p5(sketch);
+  </script>
 
   <script>loadReadmeFile();</script>
 
