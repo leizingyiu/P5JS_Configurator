@@ -1,6 +1,15 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/04/28 18:31:08"
+// Last modified: "2022/05/11 02:59:49"
 
+/** TODO
+ * stick : 吸附到窗口/畫板
+ * 
+ * 整理錯誤信息
+ * 
+ * name col 添加 title 屬性
+ * 
+ * ctrl width 寬度顯示邏輯優化
+ */
 class PC {
 
     constructor(settings = {
@@ -9,29 +18,35 @@ class PC {
         displayBoo: true,
         autoHideBoo: true,
         showToolsBoo: true,
+        autoRename: true,
         text_color: '#000',
-        main_color: '#0075ffcc',
+        main_color: '#0075ff',
         bg_color: 'hsla( 0deg, 100%, 100%, 0.8)',
         ctrler_width: 100,
         font_size: 12,
         line_height: '1.5em',
         checkbox_true_display: '✔',
         input_styling: false,
-    }) {
+        name_space: 'p5js_ctrler',
+        latency_for_loading_local_data: 500
+    }, target = window) {
         const defaultSettings = {
             updateWithCookieBoo: true,
             updateWithUrlBoo: true,
             displayBoo: true,
             autoHideBoo: true,
             showToolsBoo: true,
+            autoRename: true,
             text_color: '#000',
-            main_color: '#0075ffcc',
+            main_color: '#0075ff',
             bg_color: 'hsla( 0deg, 100%, 100%, 0.8)',
             ctrler_width: 100,
             font_size: 12,
             line_height: '1.5em',
             checkbox_true_display: '✔',
-            input_styling: false
+            input_styling: false,
+            name_space: 'p5js_ctrler',
+            latency_for_loading_local_data: 50
         };
 
         Object.keys(defaultSettings).map((k) => {
@@ -60,22 +75,32 @@ class PC {
             this.maincolor = this.settings.main_color,
             this.checkboxtrue = this.settings.checkbox_true_display;
 
+        this.nameSpace = settings.name_space;
+        this.noiseSeed = false;
+
         // 容器声明
         this.ctrlerDivs = {}, this.nameCol = {}, this.ctrlers = {}, this.valueCol = {}, this.groups = {}, this.groupNames = {}, this.objArgs = {}, this.nameColWidth = 0;
 
         this.#_parentTarget = this.ctrlersContainer;
+        this.target = target;
 
         //设置外层容器
-        this.mainContainer = createDiv();
+        this.mainContainer = this.target.createDiv();
         this.mainContainer.id(this.id);
         this.mainContainer.elt.setAttribute('p5_Ctrler_by_leizingyiu', 'visit:leizingyiu.net', '');
+        if (window.navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)) {
+            this.mainContainer.elt.classList.add('mobile');
+        }
         this.displayBoo = settings.displayBoo;
         if (this.displayBoo == false) {
             this.mainContainer.elt.style.display = 'none';
         }
+        if (this.settings.autoHideBoo == true) {
+            this.mainContainer.elt.classList.add('autoHide');
+        }
 
         //设置内层容器
-        this.ctrlersContainer = createDiv();
+        this.ctrlersContainer = this.target.createDiv();
         this.ctrlersContainer.id(this.id + '_inner');
         this.ctrlersContainer.parent(this.mainContainer);
 
@@ -93,38 +118,38 @@ class PC {
         });
 
         //设置拖拽标签
-        const dragDiv = createDiv();
-        const dragP = createP(this.id);
+        const dragDiv = this.target.createDiv();
+        const dragP = this.target.createP(this.id);
         dragP.style('color:#fff');
         dragDiv.id(this.id + '_header');
         dragDiv.parent(this.mainContainer);
         dragP.parent(dragDiv);
-        this.#dragElement(this.mainContainer.elt);
+        this.#tagSetting(this.mainContainer.elt);
 
         if (this.settings.showToolsBoo == true) {        // 设置工具按钮容器
-            this.toolsDiv = createDiv();
+            this.toolsDiv = this.target.createDiv();
             this.toolsDiv.class('ctrler_tools');
 
             // 将变量输出成 var 语句
-            const varBtn = createButton('var');
+            const varBtn = this.target.createButton('var');
             varBtn.mousePressed(_ => {
                 this.#variablesStr();
             });
 
-            const toJsonBtn = createButton('toJson');
+            const toJsonBtn = this.target.createButton('toJson');
             toJsonBtn.mousePressed(_ => {
                 this.#toJson();
             })
 
             // 讲变量值固定到 PC 的设置脚本
-            const renewBtn = createButton('renew');
+            const renewBtn = this.target.createButton('renew');
             renewBtn.mousePressed(_ => {
                 let name = prompt('请填写变量名称', 'pc');
                 this.#renew(name);
             });
 
             // 重制所有数值，清除网址以及cookie中的数值
-            const resetBtn = createButton('reset');
+            const resetBtn = this.target.createButton('reset');
             resetBtn.mousePressed(_ => {
                 Object.keys(this.ctrlers).map(k => {
                     document.cookie = `${k}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
@@ -135,7 +160,7 @@ class PC {
             });
 
             // 生成包含当前数值的网址
-            const generateUrlBtn = createButton('generaUrl');
+            const generateUrlBtn = this.target.createButton('generaUrl');
             generateUrlBtn.mousePressed(_ => {
                 Object.keys(this.ctrlers).map(k => {
                     this.#updateValToUrl(k);
@@ -173,6 +198,9 @@ class PC {
         word-break: break-all;
         margin: inherit;
     `;
+    #updateTimmer = null;
+    #nameCheckingIndex = 0;
+
     #setParentTarget = function (parent) {
         // console.log(parent, this.groups[parent], parent && 'type' in parent && parent.type == 'group');
 
@@ -195,7 +223,7 @@ class PC {
                         --border-radius:0.2em;
                         --main-color:${this.maincolor};
                         --unit-length:1em;
-                        --transition-time:0.5s;
+                        --transition-time:0.25s;
                         z-index:999;
                         position: absolute;
                         left: var(--unit-length);
@@ -225,23 +253,29 @@ class PC {
                         -moz-user-select: none;
                         -ms-user-select: none;
                     
+                        filter: drop-shadow(0 0 0.5rem rgba(0,0,0,0.1) );
                     }
-                    ` +/** autohide styling */ (settings.autoHideBoo == true ? `  
-                    #${this.id}  {
+                    ` +/** autohide styling */  `  
+                    #${this.id}.autoHide  {
                         opacity:0.4;
                         transform:scale(72%,72%);
                         transform-origin: top left;
                     }
-                    #${this.id}:hover,
-                    #${this.id}.${this.activeClassName}{
+                    #${this.id}.autoHide.mobile,
+                    #${this.id}.autoHide:hover,
+                    #${this.id}.autoHide.${this.activeClassName}{
                         opacity:1;
                         transform:scale(100%,100%);
                     }
                     
-                    ` : '') +/**header styling */ `
+                    ` +/**header styling */ `
         
+                    #${this.id}.autohide  #${this.id}_header{
+                        cursor:move;
+                    }
+                    
                     #${this.id}  #${this.id}_header{
-                        cursor: move;
+                        cursor: pointer;
                         height:0;
                         overflow:hidden;
                         align-items: center;
@@ -265,8 +299,8 @@ class PC {
                         left var(--transition-time) ease,
                         right var(--transition-time) ease,
                         transform var(--transition-time) ease;
-
                     }
+                    
                     #${this.id}:hover #${this.id}_header{
                         height:var(--unit-length);
                         background:var(--main-color);
@@ -289,7 +323,7 @@ class PC {
                             max-height var(--transition-time) ease,
                             max-width  var(--transition-time) ease,
                             width var(--transition-time) ease;
-                        overflow-y:scroll;
+                        overflow-y: auto!important;
                         overflow-x:hidden;
                         max-height:96vh;
                         max-width: var(--container-w);
@@ -340,6 +374,7 @@ class PC {
                         --min-width: unset;
                         width:fit-content;
                         min-width:var(--namecol-w);
+                        white-space: nowrap;
                     }
 
                     #${this.id} div.ctrler>div {
@@ -437,7 +472,18 @@ class PC {
                         margin-right:0.5em;
                         display: inline-block;
                     }
-`;
+                    `+/** mobile */`
+                    #${this.id}.mobile{
+                    left: 0!important;
+                    right: 0!important;
+                    padding: var(--unit-length)!important;
+                    max-height:64vh;
+                    }
+                    #${this.id}.mobile div#${this.id + '_inner'}{
+                    max-width: unset!important;
+                    overflow-y:auto!important;    
+                    }
+                    `;
         };
         style.setAttribute('name', this.id + '_main_style');
         this.mainContainer.elt.appendChild(style);
@@ -454,6 +500,7 @@ class PC {
         //     this.nameCol[name].size(this.nameColWidth);
         // });
 
+
         Object.keys(this.nameCol).map(name => this.nameCol[name].style('max-width: unset;'));
 
         let nameColWidthArr = Object.keys(this.nameCol).filter(
@@ -467,6 +514,7 @@ class PC {
         this.ctrlersContainer.elt.style.setProperty("--namecol-w", nameColWidth + 'px');
 
         Object.keys(this.nameCol).map(name => this.nameCol[name].style('max-width: var(--namecol-w);'));
+
 
         // console.log(nameColWidthArr.join(','), Object.keys(this.ctrlers).pop());
         // [...Object.values(this.ctrlerDivs)].map(div => {
@@ -485,15 +533,22 @@ class PC {
         this.ctrlersContainer.elt.style.setProperty("--container-w", container_w + 2 + 'px');
         Object.keys(this.ctrlers).map(name => this.ctrlers[name].elt.style.removeProperty('flex-grow'));
 
+
         let container_h = this.ctrlersContainer.elt.clientHeight;
         if (this.settings.showToolsBoo == true) { container_h = this.toolsDiv.elt.clientHeight + container_h; }
         this.ctrlersContainer.elt.style.setProperty("--container-h", container_h + 'px');
+
 
 
         // this.ctrlersContainer.elt.style.setProperty("--container-w",     this.ctrlersContainer.elt.clientWidth + 'px');
         // this.ctrlersContainer.elt.style.setProperty("--container-w", Math.max(this.ctrlerwidth, Math.max(ctrlersDisplayWidth, this.settings.showToolsBoo == true ? this.toolsDiv.elt.clientWidth : 0)) + this.#_scrollBarWidth + 'px');
 
         //  console.log(ctrlersDisplayWidths, ctrlersDisplayWidth, this.#_scrollBarWidth, container_w, this.settings.showToolsBoo == true ? this.toolsDiv.elt.clientWidth : 0);
+
+
+        // if(this.mainContainer.elt.clientHeight>window.innerHeight*0.85){
+        //     this.stick();
+        // }
 
     };
 
@@ -549,66 +604,81 @@ class PC {
 
     };
     #updateValueCol(name) {
-        this.valueCol[name].elt.innerText = this.getCtrlerVal(name);
-        let originMinW = this.valueCol[name].elt.style.getPropertyValue('min-width');
-        originMinW = originMinW.match(/\d*/) ? Number(originMinW.match(/\d*/)) : 0;
-        let minW = Math.max(originMinW, this.valueCol[name].elt.clientWidth);
-        if (originMinW != minW) {
-            this.valueCol[name].elt.style.setProperty('min-width', minW + 'px');
+        if (Object.keys(this.valueCol).indexOf(name) != -1) {
+            this.valueCol[name].elt.innerText = this.getCtrlerVal(name);
+
+            let originMinW = this.valueCol[name].elt.style.getPropertyValue('min-width');
+            originMinW = originMinW.match(/\d*/) ? Number(originMinW.match(/\d*/)) : 0;
+            let minW = Math.max(originMinW, this.valueCol[name].elt.clientWidth);
+            if (originMinW != minW) {
+                this.valueCol[name].elt.style.setProperty('min-width', minW + 'px');
+            }
         }
     }
     #nameAndVal = function (name) {
 
-        this.nameCol[name] = createSpan(`${name}`);
+        this.nameCol[name] = this.target.createSpan(`${name}`);
         this.nameCol[name].class('ctrlerName');
         this.nameCol[name].style('user-select:none');
 
         if (['slider', 'color'].indexOf(this.ctrlers[name].type) != -1) {
-            this.valueCol[name] = createSpan(`${this.getCtrlerVal(name)}`);
+            this.valueCol[name] = this.target.createSpan(`${this.getCtrlerVal(name)}`);
             this.valueCol[name].style('user-select:none');
         }
 
         Object.keys(this.groups).map(groupname => this.#groupHeightUpdate(groupname))
     };
+    #checkNameLegal(name) {
+        return !name || Boolean(name) == false || typeof name == 'undefined' || name === false || name == null || typeof name == 'string' && !name[0].match(/[a-zA-Z_$]/)
+    }
     #checkCtrlerName(name) {
-        
-        let illegalNameBoo=!name||Boolean(name)==false||typeof name=='undefined'||name===false||name==null||typeof name =='string'&&!name[0].match(/[a-zA-Z_$]/);
-        // console.log(typeof name =='string' ,typeof name =='string'&&!name[0].match(/[a-zA-Z_$]/));
+        this.#nameCheckingIndex++;
+        let illegalNameBoo = this.#checkNameLegal(name);
         if (name in this.ctrlers) {
             throw (`"${name}" :A ctrler with this name already exists`);
             return false;
-        }else if(illegalNameBoo){
-            let beforeName=name;
-            name=this.#randomName();
-            console.log(`name ${beforeName} is not legal, it has beem renamed to ${name}`);
-            return  name;
+        } else if (illegalNameBoo) {
+            let beforeName = name;
+            name = this.#randomName();
+            console.log(`name ${beforeName} is not legal or empty, it has beem renamed to ${name}`);
+            return name;
         }
         return true;
     };
     #initCtrler = function (name, parent = this.#_parentTarget) {
-       
-        this.ctrlers[name].name=name;
-        this.ctrlerDivs[name] = createDiv();
+        let that = this;
+
+        this.ctrlers[name].name = name;
+        this.ctrlerDivs[name] = this.target.createDiv();
         this.ctrlerDivs[name].class('ctrler');
+
         this.#nameAndVal(name);
         this.#bindCtrler(name, parent);
         this.#updateCtrlerDisplay();
 
         if (['fileinput'].indexOf(this.ctrlers[name].type) == -1) {
-            if (this.updateWithCookieBoo == true) {
-                this.#getValFromCookie(name);
-            }
+
             if (this.updateWithUrlBoo == true) {
                 this.ctrlers[name].elt.onchange = _ => {
-                    this.#updateValToUrl(name);
+                    that.#updateValToUrl(name);
                 };
             }
-            this.#getValFromUrl(name);
+
+
+            let delay = this.settings.latency_for_loading_local_data;
+            this.#updateTimmer = typeof this.#updateTimmer == 'undefined' ? null : this.#updateTimmer;
+            clearTimeout(this.#updateTimmer);
+
+            this.#updateTimmer = setTimeout(() => {
+                if (that.updateWithCookieBoo == true) { that.#getValFromCookie(); }
+                if (that.updateWithUrlBoo == true) { that.#getValFromUrl(); }
+                this.target.redraw();
+            }, delay);
+
         }
 
 
 
-        let that = this;
 
         this.ctrlers[name].update = function (val) {
             that.update(name, val);
@@ -655,9 +725,9 @@ class PC {
     };
 
     slider(name, defaultVal = 1, minVal = Math.min(0, defaultVal), maxVal = 2 * Math.max(minVal, defaultVal, 1), precision = Math.max(maxVal, defaultVal, 1) / 10, fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
 
@@ -675,7 +745,7 @@ defaultVal, minVal, maxVal, precision need number`);
         }
 
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createSlider(minVal, maxVal, defaultVal, precision);
+        this.ctrlers[name] = this.target.createSlider(minVal, maxVal, defaultVal, precision);
         this.ctrlers[name].type = 'slider';
         this.ctrlers[name].nameAnonymous = nameAnonymous;
 
@@ -685,15 +755,15 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     button(name = 'p5js_ctrler_btn', btnText = 'btn', fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
 
 
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createButton(btnText);
+        this.ctrlers[name] = this.target.createButton(btnText);
         this.ctrlers[name].mousePressed(fxn);
         this.ctrlers[name].type = 'button';
         this.ctrlers[name].nameAnonymous = nameAnonymous;
@@ -703,15 +773,15 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     checkbox(name = 'p5js_ctrler_checkbox', defaultVal = false, labelText = ['yes', 'no'], fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
 
 
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createCheckbox(name, defaultVal);
+        this.ctrlers[name] = this.target.createCheckbox(name, defaultVal);
         this.ctrlers[name].labelText = {
             'true': labelText[0],
             'false': labelText[1]
@@ -734,15 +804,15 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     select(name = 'p5js_ctrler_select', options = [], fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
 
 
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createSelect(name);
+        this.ctrlers[name] = this.target.createSelect(name);
         options.map(o => {
             this.ctrlers[name].option(o);
         });
@@ -755,15 +825,15 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     radio(name = 'p5js_ctrler_radio', options = [], fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
 
 
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createRadio(name);
+        this.ctrlers[name] = this.target.createRadio(name);
 
         options.map(o => {
             if (o instanceof Array) {
@@ -788,8 +858,6 @@ defaultVal, minVal, maxVal, precision need number`);
 
 
     #radioBeautify(name) {
-
-        // TODO 
         const inputs = [...this.ctrlers[name].elt.querySelectorAll('[type="radio"]')].filter(i => i.parentElement != 'label');
         inputs.map(i => {
             const p = i.parentElement;
@@ -830,7 +898,7 @@ defaultVal, minVal, maxVal, precision need number`);
 
             [...new Array(row)].map((i, idx) => {
                 let p = document.createElement('p');
-                p.style.cssText = `    display: flex;    flex-direction: column;margin:0`;
+                p.style.cssText = `display: flex; flex-direction: column;margin:0; align-self: flex-start;`;
                 div.appendChild(p);
                 div.style.cssText += `flex-wrap: nowrap;`;
                 for (let j = 0, jj = Math.ceil(lArr.length / row); j < jj; j++) {
@@ -846,14 +914,14 @@ defaultVal, minVal, maxVal, precision need number`);
 
     };
     color(name = 'p5js_ctrler_color', defaultVal = '#369', fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
 
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createColorPicker(defaultVal);
+        this.ctrlers[name] = this.target.createColorPicker(defaultVal);
         this.ctrlers[name].type = 'color';
         this.ctrlers[name].nameAnonymous = nameAnonymous;
 
@@ -863,14 +931,14 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     input(name = 'p5js_ctrler_input', defaultVal = '', fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
 
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createInput(defaultVal);
+        this.ctrlers[name] = this.target.createInput(defaultVal);
         this.ctrlers[name].type = 'input';
         this.ctrlers[name].nameAnonymous = nameAnonymous;
 
@@ -880,21 +948,21 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     textarea(name = "p5js_ctrler_textarea", defaultVal = '', fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
 
 
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createElement('textarea', defaultVal);
+        this.ctrlers[name] = this.target.createElement('textarea', defaultVal);
 
         this.ctrlers[name].type = 'textarea';
         this.ctrlers[name].nameAnonymous = nameAnonymous;
 
         this.ctrlers[name].changed(fxn);
-        this.ctrlers[name].input((e) => { this.#updateTextareaHeight(e.path[0]) });
+        this.ctrlers[name].input((e) => { this.#updateTextareaHeight(e.target) });
         this.#initCtrler(name);
         this.#updateTextareaHeight(this.ctrlers[name].elt);
         return this.ctrlers[name];
@@ -927,13 +995,13 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     fileinput(name = "p5js_ctrler_fileinput", fxn = () => { }) {
-        let nameCheckingResult=this.#checkCtrlerName(name), nameAnonymous = false;
-        if (arguments.length == 0||this.#checkCtrlerName(name)!==true) {
-            name =nameCheckingResult;
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
             nameAnonymous = true;
         }
         this.#recordArgs(...arguments);
-        this.ctrlers[name] = createFileInput(fxn);
+        this.ctrlers[name] = this.target.createFileInput(fxn);
         this.ctrlers[name].type = 'fileinput';
         this.ctrlers[name].nameAnonymous = nameAnonymous;
 
@@ -941,47 +1009,120 @@ defaultVal, minVal, maxVal, precision need number`);
         return this.ctrlers[name];
     };
 
-    hr(borderStyle='-',borderWidth='1px') {
-        const hr = createElement('hr', '');
-        let styleDict={
+    hr(borderStyle = '-', borderWidth = '1px') {
+        const hr = this.target.createElement('hr', '');
+        let styleDict = {
             '': 'none', ' ': 'none', '.': 'dotted', '-': 'dashed', '_': 'solid', '=': 'double', 'v': 'groove', 'V': 'groove', 'A': 'ridge', '^': 'ridge', '<': 'inset', '>': 'outset', '[': 'inset', ']': 'outset'
         }, style;
-        if(Object.keys(styleDict).indexOf(borderStyle)!=-1){style=styleDict[borderStyle];}else if(Object.values(styleDict).indexOf(borderStyle)!=-1){style=borderStyle;};
-        if(typeof borderWidth=='number'){borderWidth=borderWidth+'px';
-        }else if(!borderWidth.match(/\d{1,}(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vh|vmin|vmax|%)/)){
-        console.log(`hr(borderStyle='-',borderWidth='1px'): borderWidth require a number or a css length; already set it to default value '1px' `);
-        borderWidth='1px';
+        if (Object.keys(styleDict).indexOf(borderStyle) != -1) { style = styleDict[borderStyle]; } else if (Object.values(styleDict).indexOf(borderStyle) != -1) { style = borderStyle; };
+        if (typeof borderWidth == 'number') {
+            borderWidth = borderWidth + 'px';
+        } else if (!borderWidth.match(/\d{1,}(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vh|vmin|vmax|%)/)) {
+            console.log(`hr(borderStyle='-',borderWidth='1px'): borderWidth require a number or a css length; already set it to default value '1px' `);
+            borderWidth = '1px';
         }
-        hr.style('border-style',style);hr.style('border-width',borderWidth);
-        hr.parent(this.ctrlersContainer);
+        hr.style('border-style', style); hr.style('border-width', borderWidth);
+        hr.parent(this.#_parentTarget);
         return this;
     };
 
-
-
-    group(name = "p5js_ctrler_group") {
-        if (arguments.length == 0) {
-            name += this.#randomName();
+    a(name, href, html, target) {
+        let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
+            name = nameCheckingResult;
+            nameAnonymous = true;
         }
 
         this.#recordArgs(...arguments);
-        this.groups[name] = createDiv();
+
+        this.ctrlers[name] = this.target.createA(href, html, target);
+        this.ctrlers[name].type = 'a';
+        this.ctrlers[name].href = href;
+        this.ctrlers[name].nameAnonymous = nameAnonymous;
+
+        this.#initCtrler(name);
+
+
+        return this.ctrlers[name];
+    }
+
+    group(name) {
+        // if (arguments.length == 0) {
+        //     name += this.#randomName();
+        // }
+
+        let nameCheckingResult = this.#checkGroupName(name), nameAnonymous = false;
+        if (arguments.length == 0 || this.#checkGroupName(name) !== true) {
+            name = nameCheckingResult;
+            nameAnonymous = true;
+        }
+
+        this.#recordArgs(...arguments);
+        this.groups[name] = this.target.createDiv();
         this.groups[name].type = 'group';
+        this.groups[name].nameAnonymous = nameAnonymous;
         this.#initGroup(name);
-
-        // this.#setParentTarget(this.groups[name]);
-
-        // console.log(this.#_parentTarget)
 
         return this.groups[name];
     };
     #checkGroupName(name) {
+        this.#nameCheckingIndex++;
+        let illegalNameBoo = this.#checkNameLegal(name);
+        let beforeName = name;
         if (name in this.groups) {
-            throw (`"${name}" :A group with this name already exists`);
+            if (this.settings.autoRename == true) {
+                name = this.#randomName(name);
+                console.log(`"${beforeName}" :A group with this name already exists,it has been rename to ${name}`);
+                return name;
+            } else {
+                throw (`"${name}" :A group with this name already exists`);
+            }
             return false;
+        } else if (illegalNameBoo) {
+            name = this.#randomName();
+            console.log(`name ${beforeName} is not legal or empty, it has beem renamed to ${name}`);
+            return name;
         }
         return true;
+
+
+
     };
+    foldGroup(name) {
+        let args = [];
+        if (arguments.length == 0) {
+            args = Object.keys(this.groups);
+        } else if (arguments.length > 1) {
+            args = [...arguments];
+        } else {
+            args = [name];
+        }
+        if (args.some(a => !Object.keys(this.groups).includes(a))) {
+            throw (`the group '${args.filter(a => !Object.keys(this.groups).includes(a))}' cant find in this.groups`);
+        }
+
+        args.map(groupName => {
+            this.groups[groupName].elt.classList.add("hide");
+        });
+    }
+    unfoldGroup(name) {
+        let args = [];
+        if (arguments.length == 0) {
+            args = Object.keys(this.groups);
+        } else if (arguments.length > 1) {
+            args = [...arguments];
+        } else {
+            args = [name];
+        }
+        if (args.some(a => !Object.keys(this.groups).includes(a))) {
+            throw (`the group '${args.filter(a => !Object.keys(this.groups).includes(a))}' cant find in this.groups`);
+        }
+
+        args.map(groupName => {
+            this.groups[groupName].elt.classList.remove("hide");
+        });
+    }
+
     #initGroup = function (groupName) {
         let that = this;
 
@@ -1001,44 +1142,44 @@ defaultVal, minVal, maxVal, precision need number`);
         this.groups[groupName].attribute('groupname', groupName);
         this.groups[groupName].parent(this.ctrlersContainer);
 
-        this.groupNames[groupName] = createP();
+        this.groupNames[groupName] = this.target.createP();
         this.groupNames[groupName].class('groupTitle');
         this.groupNames[groupName].mouseClicked(groupFoldFn);
 
         this.groupNames[groupName].parent(this.groups[groupName]);
 
-        let nameSpan = createSpan(`${groupName}`);
+        let nameSpan = this.target.createSpan(`${groupName}`);
         nameSpan.class('groupTitleName');
         nameSpan.parent(this.groupNames[groupName]);
 
-        let switchBtn = createA('javascript:void 0;', '\<');
+        let switchBtn = this.target.createA('javascript:void 0;', '\<');
         switchBtn.parent(this.groupNames[groupName]);
 
-        this.groups[groupName].ctrlersList=[];
+        this.groups[groupName].ctrlersList = [];
 
         this.groups[groupName].elt.style.setProperty('--title-height', this.groupNames[groupName].elt.clientHeight + 'px');
 
         ['slider', 'button', 'checkbox', 'select', 'radio', 'color', 'input', 'textarea', 'fileinput', 'hr'].map(fn => {
             this.groups[groupName][fn] = this.#groupCtrlerFn(groupName, fn);
-            
+
         });
         this.groups[groupName].displayName = function (displayname) {
             that.displayName(groupName, displayname);
             return that.groups[groupName];
         };
 
-        this.groups[groupName].disable=function(){
+        this.groups[groupName].disable = function () {
             that.groups[groupName].elt.classList.add('hide');
             that.groups[groupName].elt.classList.add('disable');
-            that.groupNames[groupName].mouseClicked(()=>{});
+            that.groupNames[groupName].mouseClicked(() => { });
             // console.log(that.groups[groupName].ctrlersList);
-            that.groups[groupName].ctrlersList.map(ctrlerName=>that.ctrlers[ctrlerName].disable());
+            that.groups[groupName].ctrlersList.map(ctrlerName => that.ctrlers[ctrlerName].disable());
         };
-        this.groups[groupName].enable=function(){
+        this.groups[groupName].enable = function () {
             that.groups[groupName].elt.classList.remove('hide');
             that.groups[groupName].elt.classList.remove('disable');
             that.groupNames[groupName].mouseClicked(groupFoldFn);
-            that.groups[groupName].ctrlersList.map(ctrlerName=>that.ctrlers[ctrlerName].enable());
+            that.groups[groupName].ctrlersList.map(ctrlerName => that.ctrlers[ctrlerName].enable());
         };
     };
     #groupCtrlerFn = function (groupName, fn) {
@@ -1076,18 +1217,103 @@ defaultVal, minVal, maxVal, precision need number`);
         this.groups[name].elt.style.height = String(this.groups[name].elt.clientHeight) + 'px';
 
     };
+    #multiParaCompat_1(arg, defaultArr, fxName, that = this) { /** 原函数需要一个参数，兼容多参数，直接多任务循环*/
+        switch (true) {
+            case arg.length == 0:
+                /** 原函数空参数 */
+                arg = defaultArr;
+                break;
+            case arg.length == 1 && arg[0] instanceof Array:
+                /** 原函数传入参数为数组 */
+
+                arg = [...arg[0]];
+                break;
+            case arg.length > 1:
+                /** 原函数被传入多个参数 */
+                arg = arg;
+                break;
+            case arg.length == 1 && !(arg[0] instanceof Object):
+                /** 原函数传入参数为一个，并且不是对象或数组，返回false表示非多参数，在原函数继续执行*/
+                return false;
+                break;
+        }
+        arg.map(a => { /** 原函数需要一个参数，被传入多个参数，多参数被转换成数组，逐个执行 */
+            that[fxName](a);
+        });
+        return this;
+    }
+    #multiParaCompat_2(arg, fxName, that = this) {/** 原函数需要多个参数，兼容数组、对象，直接多任务循环 */
+
+        switch (true) {
+            case arg.length >= 2 && arg.every(a => a instanceof Array) && arg.map(a => a.length).map((l, idx, a) => l == a[idx]).filter(Boolean).length > 0:
+                /** 传入多个参数，两个都是数组，两个数组长度相等 
+                 * fx([k,k,k,k,k...],[v,v,v,v,v...])
+                */
+                arg[0].map((a, idx) => {
+                    let _arg = [];
+                    arg.map(_a => {
+                        _arg.push(_a[idx]);
+                    })
+                    that[fxName](..._arg);
+                });
+                return this;
+                break;
+            case arg.length == 1 && arg[0] instanceof Object && !(arg[0] instanceof Array):
+                /** 传入一个参数，参数为对象 
+                 * fx({k:v,k:v})
+                */
+
+                Object.keys(arg[0]).map(k => {/** 遍历所有键值对 */
+                    if (arg[0][k] instanceof Object) {/** 如果值为对象，则将对象再放入函数 */
+                        that[fxName](arg[0][k]);
+                    } else {/** 如果值不为对象，则将键值填入函数 */
+                        that[fxName](k, arg[0][k]);
+                    }
+                });
+                return this;
+                break;
+
+            case arg.length > 1 &&
+                arg.every(a => a instanceof Object) &&
+                arg.every(a => Object.values(a).length == 1) &&
+                arg.every(a => Object.values(a).every(_a => !(_a instanceof Object))):
+                /** 多个 单键值对 对象 参数， 
+                 * fx({k:v},{k:v})
+                */
+
+                arg.map(a => {
+                    let _a = [].concat(...Object.entries(a));
+                    that[fxName](..._a);
+                });
+                return this;
+                break;
+            case arg.length > 1 && arg.every(a => !(a instanceof Object)):
+                /** 如果参数多于一个，并且每个都不是对象或 数组，则返回false，让原函数继续运算 */
+                return false;
+                break;
+
+            case arg.length == 0:
+                return 0;
+                break;
+        }
+        /** 没有捕捉到可以作为多参数运行的方式，返回false让原函数继续运算 */
+        return false;
+    }
     update(name, value) {
+        let multiparaCheck = this.#multiParaCompat_2([...arguments], 'update');
+        if (multiparaCheck === 0) {
+            throw ('update(name,value) require name and value,or a Object/Array contain name and value');
+        }
+        if (multiparaCheck !== false) {
+            return this;
+        }
 
         if (value == null ||
             (['select', 'radio'].indexOf(this.ctrlers[name].type) != -1 &&
                 (this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null ||
                     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == undefined)
             )) {
-            // console.log('name: ', name, '\nvalue: ', value, '\n typeof value: ', typeof value, '\nvalue == null :', value == null, '  \n',
-            //     'this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null , undefined :  ',
-            //     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == null,
-            //     this.ctrlers[name].elt.querySelector(`[value="${value}"]`) == undefined);
-            console.log(`can not fint the value ${value} option or selection in the ctrler[${name}]`);
+            console.log(`can not fint the option or selection of value:( ${value} )  in the ctrler[${name}]`);
             return false;
         }
 
@@ -1116,6 +1342,11 @@ defaultVal, minVal, maxVal, precision need number`);
                     console.log(`updating ${name} error, and clicked it`);
                 };
                 break;
+            case 'a':
+                this.ctrlers[name].href = value;
+                this.ctrlers[name].elt.href = value;
+                break;
+
             default:
                 this.ctrlers[name].elt.value = value;
                 break;
@@ -1129,21 +1360,47 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     disable(name) {
-        this.ctrlerDivs[name].elt.classList.add('disable');
-        this.ctrlers[name].elt.setAttribute('disabled', true);
+
+        let multiparaCheck = this.#multiParaCompat_1([...arguments], this.#allKeys(), 'disable');
+        if (multiparaCheck !== false) {
+            return this;
+        }
+
+        if (Object.keys(this.ctrlers).includes(name) == true) {
+            this.ctrlerDivs[name].elt.classList.add('disable');
+            this.ctrlers[name].elt.setAttribute('disabled', true);
+        } else if (Object.keys(this.groups).includes(name) == true) {
+            this.groups[name].disable();
+        }
+
+
+
         return this;
     };
 
     enable(name) {
-        this.ctrlerDivs[name].elt.classList.remove('disable');
-        this.ctrlers[name].elt.removeAttribute('disabled');
+
+        let multiparaCheck = this.#multiParaCompat_1([...arguments], this.#allKeys(), 'enable');
+        if (multiparaCheck !== false) {
+            return this;
+        }
+
+        if (Object.keys(this.ctrlers).includes(name) == true) {
+            this.ctrlerDivs[name].elt.classList.remove('disable');
+            this.ctrlers[name].elt.removeAttribute('disabled');
+        } else if (Object.keys(this.groups).includes(name) == true) {
+            this.groups[name].enable();
+        }
         return this;
     };
 
     range(name, min, max) {
+        if (this.ctrlers[name].type != 'slider') {
+            throw ('Please use range() and precision() on slider controller');
+        }
         this.ctrlers[name].elt.setAttribute('min', min);
         this.ctrlers[name].elt.setAttribute('max', max);
-        this.update(name, Math.max(Math.min(this.ctrlers[name].elt.value, max), min));
+        this.update(name, Number(Math.max(Math.min(this.ctrlers[name].elt.value, max), min)));
         return this;
     };
     precision(name, precisionNum) {
@@ -1159,22 +1416,27 @@ defaultVal, minVal, maxVal, precision need number`);
         return this;
     };
 
-    // TODO 增加一个初始化参数，允许适应显示名称的宽度
     displayName(name, displayname) {
+
+        let multiparaCheck = this.#multiParaCompat_2([...arguments], 'displayName');
+        if (multiparaCheck === 0) {
+            throw ('displayName(name, displayname) require name and displayname, or a Object/Array contain name and displayname ');
+        }
+        if (multiparaCheck !== false) {
+            return this;
+        }
+
         if (name in this.ctrlers || name in this.groups) {
             if (name in this.groups) {
                 this.groupNames[name].elt.querySelector('.groupTitleName').innerText = displayname;
                 this.groups[name].rename = displayname;
-
             } else if (name in this.ctrlers) {
                 this.nameCol[name].elt.innerText = displayname;
                 this.ctrlers[name].rename = displayname;
-
                 let groupname = this.ctrlerDivs[name].parent().getAttribute('groupname');
                 if (groupname) {
                     this.#groupHeightUpdate(groupname);
                 }
-
             }
         }
         this.#updateCtrlerDisplay();
@@ -1183,6 +1445,14 @@ defaultVal, minVal, maxVal, precision need number`);
 
 
     alt(name, altText) {
+        let multiparaCheck = this.#multiParaCompat_2([...arguments], 'alt');
+        if (multiparaCheck === 0) {
+            throw ('alt(name, altText) require name and altText, or a Object/Array contain name and altText ');
+        }
+        if (multiparaCheck !== false) {
+            return this;
+        }
+
         switch (true) {
             case !name in this.ctrlerDivs:
                 throw (`alt(name, altText): cant find a ctrler named ${name}`);
@@ -1215,6 +1485,20 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     getCtrlerVal(name) {
+        if (arguments.length == 0 || arguments.length > 1) {
+            let arg;
+            if (arguments.length > 1 && [...arguments].every(a => typeof a == 'string')) {
+                arg = [...arguments];
+            } else {
+                arg = this.#allCtrlersKeys();
+            }
+            let result = {};
+            [...arguments].map(a => {
+                result[a] = this.getCtrlerVal(a);
+            });
+            return result;
+        }
+
         let that = this;
         switch (that.ctrlers[name].type) {
             case 'checkbox':
@@ -1228,6 +1512,9 @@ defaultVal, minVal, maxVal, precision need number`);
                 let t = [...input].filter(i => i.checked);
                 let radioResult = t.length ? t[0].value : null;
                 return radioResult;
+                break;
+            case 'a':
+                return that.ctrlers[name].href;
                 break;
             default:
                 return that.ctrlers[name].value();
@@ -1372,7 +1659,7 @@ defaultVal, minVal, maxVal, precision need number`);
                 if (this.ctrlers[k].type == 'fileinput' || this.ctrlers[k].elt.getAttribute('disable') == true) {
                     return;
                 }
-                document.cookie = `${k}=${this.getCtrlerVal(k)}; `;
+                document.cookie = `${k}=${this.getCtrlerVal(k)}; ` + 'SameSite=Lax;';
             });
         }
     };
@@ -1433,48 +1720,56 @@ defaultVal, minVal, maxVal, precision need number`);
         domElm.name = name;
         domElm.setAttribute('name', name);
     };
-    #randomName() {
-        return 'p5js_ctrler_' + String(Math.random()).replace(/\./g, '');
+    #randomName(name = 'p5js_ctrler') {
+        return name + '_' + String(this.#noise(this.#nameCheckingIndex)).replace(/\./g, '');
     };
 
-    #dragElement = (elmnt) => {
+    #tagSetting = (elmnt) => {// drag=> move &  click => fold
+
         /*// base on https://c.runoob.com/codedemo/5370/ */
         var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
         let stickAttrName = 'stick';
-        let that = {};
+        let _that = {};
 
-        that.hideBoo = false;
-        that.hideX = window.innerWidth;
-        that.hideY = window.innerHeight;
-        that.l = 0, that.t = 0, that.w = 0, that.h = 0;
+        _that.hideBoo = false;
+        _that.hideX = window.innerWidth;
+        _that.hideY = window.innerHeight;
+        _that.l = 0, _that.t = 0, _that.w = 0, _that.h = 0;
 
-        that.updated = true;
+        _that.mousemove = false;
 
-        that.elementDrag = function (e) {
+        _that.updated = true;
+
+        _that.elementDrag = function (e) {
+            _that.mousemove = true;
 
             e = e || window.event;
-            that.l = elmnt.offsetLeft,
-                that.t = elmnt.offsetTop,
-                that.w = elmnt.offsetWidth,
-                that.h = elmnt.offsetHeight;
+            _that.l = elmnt.offsetLeft,
+                _that.t = elmnt.offsetTop,
+                _that.w = elmnt.offsetWidth,
+                _that.h = elmnt.offsetHeight;
             // calculate the new cursor position:
             pos1 = pos3 - e.clientX;
             pos2 = pos4 - e.clientY;
             pos3 = e.clientX;
             pos4 = e.clientY;
-            // set the element's new position:
-            elmnt.style.top = Math.max(0, Math.min((that.t - pos2), window.innerHeight - that.h)) + "px";
-            elmnt.style.left = Math.max(0, Math.min((that.l - pos1), window.innerWidth - that.w)) + "px";
-            elmnt.style.bottom = 'unset';
-            elmnt.style.right = 'unset';
 
-            if (that.l + that.w < window.innerWidth && that.l > 0 && that.t + that.h < window.innerHeight && that.t > 0) {
-                elmnt.removeAttribute(stickAttrName);
+            if (pos1 === pos2 && pos2 === 0) {
+                _that.mousemove = false;
+            } else {
+                // set the element's new position:
+                elmnt.style.top = Math.max(0, Math.min((_that.t - pos2), window.innerHeight - _that.h)) + "px";
+                elmnt.style.left = Math.max(0, Math.min((_that.l - pos1), window.innerWidth - _that.w)) + "px";
+                elmnt.style.bottom = 'unset';
+                elmnt.style.right = 'unset';
+
+                if (_that.l + _that.w < window.innerWidth && _that.l > 0 && _that.t + _that.h < window.innerHeight && _that.t > 0) {
+                    elmnt.removeAttribute(stickAttrName);
+                }
             }
-
         }
 
-        that.attrAddVal = function (attr, val, replaceReg = val) {
+        _that.attrAddVal = function (attr, val, replaceReg = val) {
             if (!(val instanceof Array)) {
                 val = [val];
             }
@@ -1488,7 +1783,7 @@ defaultVal, minVal, maxVal, precision need number`);
             elmnt.setAttribute(attr, oV.join(' '));
         };
 
-        that.attrRemoveVal = function (attr, val) {
+        _that.attrRemoveVal = function (attr, val) {
             if (!val instanceof Array) {
                 val = [val];
             }
@@ -1506,198 +1801,276 @@ defaultVal, minVal, maxVal, precision need number`);
             }
         };
 
-        that.updateStatus = () => {
+        _that.updateStatus = () => {
+            _that.l = elmnt.offsetLeft,
+                _that.t = elmnt.offsetTop,
+                _that.w = elmnt.offsetWidth,
+                _that.h = elmnt.offsetHeight;
+
+
+
             let before = elmnt.getAttribute(stickAttrName);
             switch (true) {
-                case that.l + that.w < windowWidth / 2 && that.t + that.h < windowHeight / 2:
+                case _that.l + _that.w < this.target.windowWidth / 2 && _that.t + _that.h < this.target.windowHeight / 2:
                     elmnt.style.transformOrigin = 'top left';
                     break;
-                case that.l + that.w < windowWidth / 2 && that.t + that.h > windowHeight / 2:
+                case _that.l + _that.w < this.target.windowWidth / 2 && _that.t + _that.h > this.target.windowHeight / 2:
                     elmnt.style.transformOrigin = 'bottom left';
                     break;
-                case that.l + that.w > windowWidth / 2 && that.t + that.h < windowHeight / 2:
+                case _that.l + _that.w > this.target.windowWidth / 2 && _that.t + _that.h < this.target.windowHeight / 2:
                     elmnt.style.transformOrigin = 'top right';
                     break;
-                case that.l + that.w > windowWidth / 2 && that.t + that.h > windowHeight / 2:
+                case _that.l + _that.w > this.target.windowWidth / 2 && _that.t + _that.h > this.target.windowHeight / 2:
                     elmnt.style.transformOrigin = 'bottom right';
                     break;
                 default:
                     elmnt.style.transformOrigin = 'center center';
             };
 
-            if (that.l + that.w >= window.innerWidth) {
-                that.attrAddVal(stickAttrName, 'right');
-                that.attrRemoveVal(stickAttrName, ['left']);
+            if (_that.l + _that.w >= window.innerWidth) {
+                _that.attrAddVal(stickAttrName, 'right');
+                _that.attrRemoveVal(stickAttrName, ['left']);
                 elmnt.style.right = 0,
                     elmnt.style.left = 'unset';
-            } else if (that.l == 0) {
-                that.attrAddVal(stickAttrName, 'left');
-                that.attrRemoveVal(stickAttrName, ['right']);
+            } else if (_that.l == 0) {
+                _that.attrAddVal(stickAttrName, 'left');
+                _that.attrRemoveVal(stickAttrName, ['right']);
                 elmnt.style.right = 'unset',
                     elmnt.style.left = 0;
             } else {
-                that.attrRemoveVal(stickAttrName, ['right', 'left']);
+                _that.attrRemoveVal(stickAttrName, ['right', 'left']);
             }
-            if (that.t + that.h >= window.innerHeight) {
-                that.attrAddVal(stickAttrName, 'bottom');
-                that.attrRemoveVal(stickAttrName, ['top']);
+
+            if (_that.t + _that.h >= window.innerHeight) {
+                _that.attrAddVal(stickAttrName, 'bottom');
+                _that.attrRemoveVal(stickAttrName, ['top']);
                 elmnt.style.top = 'unset',
                     elmnt.style.bottom = 0;
-            } else if (that.t == 0) {
-                that.attrAddVal(stickAttrName, 'top');
-                that.attrRemoveVal(stickAttrName, ['bottom']);
+            } else if (_that.t == 0) {
+                _that.attrAddVal(stickAttrName, 'top');
+                _that.attrRemoveVal(stickAttrName, ['bottom']);
                 elmnt.style.top = 0,
                     elmnt.style.bottom = 'unset';
             } else {
-                that.attrRemoveVal(stickAttrName, ['top', 'bottom']);
+                _that.attrRemoveVal(stickAttrName, ['top', 'bottom']);
             }
             let after = elmnt.getAttribute(stickAttrName);
+
+
             return !(before == after);
         };
-        that.closeDragElement = function () {
-            that.updateStatus();
+
+        _that.closeDragElement = function () {
+            _that.updateStatus();
             document.onmouseup = null;
             document.onmousemove = null;
         }
-        that.dragMouseDown = function (e) {
+        _that.dragMouseDown = function (e) {
+            _that.mousemove = false;
             e = e || window.event;
             pos3 = e.clientX;
             pos4 = e.clientY;
-            document.onmouseup = that.closeDragElement;
-            document.onmousemove = that.elementDrag;
+            document.onmouseup = _that.closeDragElement;
+            document.onmousemove = _that.elementDrag;
         }
 
-        if (document.getElementById(elmnt.id + "_header")) {
-            document.getElementById(elmnt.id + "_header").onmousedown = that.dragMouseDown;
-        } else {
-            elmnt.onmousedown = that.dragMouseDown;
+        if (!this.mainContainer.elt.classList.contains('mobile')) {
+
+            if (document.getElementById(elmnt.id + "_header")) {
+                document.getElementById(elmnt.id + "_header").onmousedown = _that.dragMouseDown;
+            } else {
+                elmnt.onmousedown = _that.dragMouseDown;
+            }
+            const style = document.createElement('style');
+            style.setAttribute('styleFor', 'dragElement');
+            style.innerText = `
+            #${this.id}[${stickAttrName}*=top] #${this.id}_header {
+                top: 100%;
+                bottom:unset;
+                border-radius: 0 0 var(--border-radius) var(--border-radius);
+            }
+
+            #${this.id}[${stickAttrName}*=top]:hover #${this.id}_header{
+                height:1em;
+                background:var(--main-color);
+                opacity:1;
+                transition:height var(--transition-time) ease, background var(--transition-time) ease,opacity var(--transition-time) ease;
+            }
+
+            #${this.id}[${stickAttrName}]{
+                transform:scale(100%,100%)!important;
+            }
+            
+            `+ `
+            
+            #${this.id}[${stickAttrName}*=top].autoHide,
+            #${this.id}[${stickAttrName}*=bottom].autoHide
+            {
+                padding:0 var(--unit-length)!important;
+            }
+        
+            #${this.id}[${stickAttrName}*=left].autoHide,
+            #${this.id}[${stickAttrName}*=right].autoHide
+            {
+                padding: var(--unit-length) 0;
+            }
+
+            #${this.id}[${stickAttrName}*=top].autoHide:hover,
+            #${this.id}[${stickAttrName}*=bottom].autoHide:hover,
+            #${this.id}[${stickAttrName}*=left].autoHide:hover,
+            #${this.id}[${stickAttrName}*=right].autoHide:hover,
+            #${this.id}[${stickAttrName}].autoHide:hover{
+                padding:var(--unit-length) var(--unit-length)!important;
+            }
+            
+            #${this.id}[${stickAttrName}*=top].autoHide.fold:hover,
+            #${this.id}[${stickAttrName}*=bottom].autoHide.fold:hover,
+            #${this.id}[${stickAttrName}*=left].autoHide.fold:hover,
+            #${this.id}[${stickAttrName}*=right].autoHide.fold:hover,
+            #${this.id}[${stickAttrName}].autoHide.fold:hover{
+                padding:0!important;
+            }
+            
+            #${this.id}[${stickAttrName}*=top].autoHide #${this.id}_inner,
+            #${this.id}[${stickAttrName}*=bottom].autoHide #${this.id}_inner
+            {
+                max-height:0;
+                max-width: var(--container-w)!important;
+            }
+        
+            #${this.id}[${stickAttrName}*=left].autoHide #${this.id}_inner,
+            #${this.id}[${stickAttrName}*=right].autoHide #${this.id}_inner
+            {
+                max-width:0;
+                max-height: var(--container-h);
+            }
+
+            #${this.id}[${stickAttrName}].autoHide:hover #${this.id}_inner{
+                max-height: var(--container-h);
+                max-width: var(--container-w);
+            }
+            
+            `+ `
+            #${this.id}[${stickAttrName}*=top],
+            #${this.id}[${stickAttrName}*=bottom],
+            #${this.id}[${stickAttrName}*=left],
+            #${this.id}[${stickAttrName}*=right],
+            #${this.id}[${stickAttrName}]{
+                padding:var(--unit-length) var(--unit-length)!important;
+            }
+            
+            #${this.id}[${stickAttrName}] #${this.id}_inner{
+                max-height: var(--container-h);
+                max-width: var(--container-w);
+                overflow-y: auto!important;
+            }
+            
+            ` + `
+            #${this.id}[${stickAttrName}] #${this.id}_header{
+                height:var(--unit-length)!important;
+                opacity:1;
+                padding-left:var(--unit-length) ;
+                padding-right:var(--unit-length) ;
+            }
+
+            #${this.id}[${stickAttrName}*=top] #${this.id}_header{
+                border-radius: 0 0  var(--border-radius) var(--border-radius);  
+            }
+            
+            #${this.id}[${stickAttrName}*=bottom] #${this.id}_header
+            {
+                border-radius: var(--border-radius) var(--border-radius) 0 0;
+            }
+
+            #${this.id}[${stickAttrName}*=left] #${this.id}_header{
+                border-radius:0  var(--border-radius) var(--border-radius) 0 ;
+            }
+            #${this.id}[${stickAttrName}*=right] #${this.id}_header{
+                left:unset;
+                right:0;
+                border-radius: var(--border-radius) 0 0 var(--border-radius) ;
+            }
+            
+            #${this.id}[${stickAttrName}*=left]{
+                left:0;
+                right:unset;
+            }
+            #${this.id}[${stickAttrName}*=right]{
+                left:unset;
+                right:0;
+            }
+            #${this.id}[${stickAttrName}*=top]{
+                top:0;
+                bottom:unset;
+            }
+            #${this.id}[${stickAttrName}*=bottom]{
+                top:unset;
+                bottom:0;
+            }
+            `;
+            this.mainContainer.elt.appendChild(style);
         }
 
-        const style = document.createElement('style');
-        style.setAttribute('styleFor', 'dragElement');
-        style.innerText = `
-        #${this.id}[${stickAttrName}*=top] #${this.id}_header {
-            top: 100%;
-            bottom:unset;
-            border-radius: 0 0 var(--border-radius) var(--border-radius);
-          }
+        {   //click => fold
 
-          #${this.id}[${stickAttrName}*=top]:hover #${this.id}_header{
-            height:1em;
-            background:var(--main-color);
-            opacity:1;
-            transition:height var(--transition-time) ease, background var(--transition-time) ease,opacity var(--transition-time) ease;
-         }
+            const style = document.createElement('style');
+            style.setAttribute('styleFor', 'folding');
+            style.innerText = `
+            #${this.id}.mobile{
+                padding: var(--unit-length);
+                max-height: 64vh;
+            }
+            #${this.id}[${stickAttrName}*=top].mobile{
+                top:0!important;
+                bottom:unset!important;
+            }
+            #${this.id}[${stickAttrName}*=bottom].mobile{
+                bottom:0!important;
+                top:unset!important;
+            }
+            #${this.id}.mobile.fold,
+            #${this.id}[${stickAttrName}].fold{
+                padding: 0 var(--unit-length) !important;
+                max-height: 0;
+            }
 
-        #${this.id}[${stickAttrName}]{
-            transform:scale(100%,100%)!important;
-        }
-        
-        `+ (this.settings.autoHideBoo == true ? `
-        
-        #${this.id}[${stickAttrName}*=top],
-        #${this.id}[${stickAttrName}*=bottom]
-        {
-            padding:0 var(--unit-length)!important;
-        }
-     
-        #${this.id}[${stickAttrName}*=left],
-        #${this.id}[${stickAttrName}*=right]
-        {
-            padding: var(--unit-length) 0;
-        }
+            #${this.id}.mobile #${this.id}_header{
+                height: var(--unit-length)!important;
+                background: var(--main-color)!important;
+                opacity: 1!important;
+                transition: height var(--transition-time) ease, background var(--transition-time) ease,opacity var(--transition-time) ease;
+            }
 
+            #${this.id}[${stickAttrName}*=top] #${this.id}_header{
+            border-radius: 0 0  var(--border-radius) var(--border-radius);  
+            top:100%;
+            }
+            `
+            this.mainContainer.elt.appendChild(style);
+            let that = this;
+            document.getElementById(elmnt.id + "_header").onmouseup = function (e) {
+                console.log(e);
+                let style = that.mainContainer.elt.style;
+                let top = style.getPropertyValue('top'), bottom = style.getPropertyValue('bottom');
+                let stick = that.mainContainer.elt.hasAttribute(stickAttrName);
+                console.log(top, bottom, stick);
+                if (_that.mousemove === false && that.mainContainer.elt.hasAttribute(stickAttrName)) {
+                    console.log('fold');
+                    that.mainContainer.elt.classList.toggle('fold');
+                }
 
-        #${this.id}[${stickAttrName}*=top]:hover,
-        #${this.id}[${stickAttrName}*=bottom]:hover,
-        #${this.id}[${stickAttrName}*=left]:hover,
-        #${this.id}[${stickAttrName}*=right]:hover,
-        #${this.id}[${stickAttrName}]:hover{
-            padding:var(--unit-length) var(--unit-length)!important;
-        }
-        
-        #${this.id}[${stickAttrName}*=top] #${this.id}_inner,
-        #${this.id}[${stickAttrName}*=bottom] #${this.id}_inner
-        {
-            max-height:0;
-            max-width: var(--container-w)!important;
-        }
-     
-        #${this.id}[${stickAttrName}*=left] #${this.id}_inner,
-        #${this.id}[${stickAttrName}*=right] #${this.id}_inner
-        {
-            max-width:0;
-            max-height: var(--container-h);
-        }
-       
-        
-        #${this.id}[${stickAttrName}]:hover #${this.id}_inner{
-            max-height: var(--container-h);
-            max-width: var(--container-w);
-        }
-           
+            };
+            function canvasFoldCtrler() {
+                that.mainContainer.elt.classList.add('fold');
+            }
 
-        `: `
-        #${this.id}[${stickAttrName}*=top],
-        #${this.id}[${stickAttrName}*=bottom],
-        #${this.id}[${stickAttrName}*=left],
-        #${this.id}[${stickAttrName}*=right],
-        #${this.id}[${stickAttrName}]{
-            padding:var(--unit-length) var(--unit-length)!important;
-        }
-        
-        #${this.id}[${stickAttrName}] #${this.id}_inner{
-            max-height: var(--container-h);
-            max-width: var(--container-w);
-        }
-        
-        `) + `
-        #${this.id}[${stickAttrName}] #${this.id}_header{
-            height:var(--unit-length)!important;
-            opacity:1;
-            padding-left:var(--unit-length) ;
-            padding-right:var(--unit-length) ;
+            if (typeof this.target.drawingContext != 'undefined' && this.settings.autoHideBoo == true) {
+                this.target.drawingContext.canvas.addEventListener('click', canvasFoldCtrler);
+            }
+
         }
 
-        #${this.id}[${stickAttrName}*=top] #${this.id}_header{
-            border-radius: 0 0  var(--border-radius) var(--border-radius);
-        }
-        
-        #${this.id}[${stickAttrName}*=bottom] #${this.id}_header
-        {
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-        }
-     
-        
-        #${this.id}[${stickAttrName}*=left] #${this.id}_header{
-            border-radius:0  var(--border-radius) var(--border-radius) 0 ;
-        }
-        #${this.id}[${stickAttrName}*=right] #${this.id}_header
-        {
-            left:unset;
-            right:0;
-            border-radius: var(--border-radius) 0 0 var(--border-radius) ;
-          
-        }
-        
-        #${this.id}[${stickAttrName}*=left]{
-            left:0;
-            right:unset;
-        }
-        #${this.id}[${stickAttrName}*=right]{
-            left:unset;
-            right:0;
-        }
-        #${this.id}[${stickAttrName}*=top]{
-            top:0;
-            bottom:unset;
-        }
-        #${this.id}[${stickAttrName}*=bottom]{
-            top:unset;
-            bottom:0;
-        }
-        `;
-        this.mainContainer.elt.appendChild(style);
+
     };
 
     #scrollBeauty = () => {
@@ -1923,7 +2296,7 @@ defaultVal, minVal, maxVal, precision need number`);
         return this;
     }
 
-    stick(position) { //stick to a side; position allow a string  one of  top / right / bottom / left
+    stick(position = 'bottom') { //stick to a side; position allow a string  one of  top / right / bottom / left
         let oppositeSide;
         switch (position) {
             case 'top':
@@ -1945,5 +2318,34 @@ defaultVal, minVal, maxVal, precision need number`);
         this.mainContainer.elt.style.setProperty(position, '0');
         this.mainContainer.elt.style.setProperty(oppositeSide, 'unset');
         this.mainContainer.elt.setAttribute('stick', position);
+    }
+    #anyToHashNum(str) {
+        let result = 0;
+        str = typeof str != 'string' ? String(str) : str;
+        str.split().map((s, idx, arr) => {
+            result += s.codePointAt(0) * Math.pow(31, arr.length - idx - 1);
+        });
+        return result;
+    }
+    #noise() {
+        if (this.noiseSeed == false) {
+            this.noiseSeed = this.#anyToHashNum(this.nameSpace);
+        }
+        let args = [...arguments].map(i => typeof i == 'number' ? i : this.#anyToHashNum(i));
+
+        this.target.noiseSeed(this.noiseSeed);
+        let result = this.target.noise(...args);
+
+        return result;
+    }
+
+    #allCtrlersKeys() {
+        return Object.keys(this.ctrlers);
+    }
+    #allGroupsKeys() {
+        return Object.keys(this.groups);
+    }
+    #allKeys() {
+        return [].concat(Object.keys(this.groups), Object.keys(this.ctrlers));
     }
 }

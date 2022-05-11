@@ -1,6 +1,42 @@
 enMdPath = typeof enMdPath != 'undefined' && enMdPath ? enMdPath : './README_en.md', cnMdPath = typeof cnMdPath != 'undefined' && cnMdPath ? cnMdPath : './README.md';
 
-function loadMarkdownFile(callback = () => { hljs.initHighlightingOnLoad(); }) {
+mdTempletsList = ['links_cn', 'links_en', 'thanks'];
+mdTempletsListReg = new RegExp('(' + mdTempletsList.map(word => `(${word})`).join('|') + ')', 'g');
+console.log(mdTempletsListReg);
+
+
+
+function mdTempletsInsert(dom) {
+    [...dom.querySelectorAll('*')].map(d => {
+        let match = (d.innerText.match(mdTempletsListReg));
+        if (match && d.children.length == 0) {
+            d.setAttribute('data-md-templet', match[0]);
+        }
+    });
+    mdTempletsList.map(filename => {
+        fetch('/mdTemplets/' + filename + '.md').then(response => response.text()).then(r => {
+            let reg = new RegExp(`<#${filename}#>`, 'g');
+
+            [...dom.querySelectorAll(`[data-md-templet=${filename}]`)].map(d => {
+                let match = d.innerText.match(reg);
+                console.log('match!!', match, 'reg!!', reg, 'd:', d);
+                if (match) {
+                    let temp = document.createElement(d.localName);
+                    temp.innerText = match[0];
+                    let htmlReg = new RegExp(temp.innerHTML, 'g');
+                    console.log(htmlReg, temp.innerText);
+                    d.innerHTML = d.innerHTML.replace(htmlReg, r);
+                    delete temp;
+                }
+            });
+        });
+    });
+}
+
+function loadMarkdownFile(callback = () => {
+    hljs.initHighlightingOnLoad();
+
+}) {
     // console.trace();
 
     /* 加载写人 markdown 文件 */
@@ -13,55 +49,33 @@ function loadMarkdownFile(callback = () => { hljs.initHighlightingOnLoad(); }) {
 
     });
 
-    //cssFilePath = "./libraries/markdown.css",
-    // /* 把所有markdown class 的，全部指定id，为后面提升markdowm.css 提升优先级作准备 */ /** 老版本主页用 */
-    // var markdownList = [...document.querySelectorAll('.markdown-body')].map(function (dom) {
-    //     console.log(dom);
-    //     if (!dom.hasAttribute('id')) {
-    //         do {
-    //             var domId = 'markdown_body_' + Math.floor(Math.random() * 100000);
-    //             console.log(domId);
-    //         } while (document.querySelectorAll('#' + domId).length != 0)
-    //         dom.setAttribute('id', domId);
-    //     } else {
-    //         var domId = dom.id;
-    //     }
-    //     return domId;
-    // });
-    // /* 把markdown.css 的选择器全部定位到内部的id上，提升优先级 */
-    // fetch(cssFilePath).then(function (response) {
-    //     return response.text();
-    // }).then(function (r) {
-    //     var style = document.createElement('style');
 
-    //     r = r.replace(/\.markdown-body([^{]+)/g, markdownList.map(function (id) {
-    //         return '#main li.active>ul[column] > li#' + id + ' $1 '
-    //     }).join(','));
-
-    //     // console.log(r);
-    //     style.innerHTML = (r);
-    //     document.querySelector('body').appendChild(style);
-    // });
-    /** 不active 的 隐藏，active 的不隐藏 */
-    // markdownList.map(function (id) {
-    //     console.log(id);
-    //     var style = document.createElement('style');
-    //     style.innerHTML = '#main #' + id + '{max-height:0;overflow:hidden;}' + '#main li.active #' + id + '{max-height:none;overflow: auto;}';
-    //     document.getElementsByTagName('body')[0].appendChild(style);
-    // });
 
     var arg = [...arguments];
     arg.map(a => a());
     return this;
 }
+function addBackToCatalog() {
+    let language = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) == -1 ? 'en' : 'cn';
+    let html = {
+        'cn': '<small style="float:right;font-weight:400;font-size: 0.5em; margin-top: 1em;">返回<a href="#目录">目录</a></small>',
+        'en': '<small style="float:right;font-weight:400;font-size: 0.5em; margin-top: 1em;">return to <a href="#directory">directory</a></small > '
+    }[language];
+    [...document.body.querySelectorAll('h2,h3')].map(dom => {
+        dom.insertAdjacentHTML('beforeend', html);
+    });
+}
 
 loadReadmeFile = () => {
-    let p = document.createElement('p');
+    let p = document.createElement('p'),
+        language = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) == -1 ? 'en' : 'cn';
+
     p.id = 'readme' + String(Math.random()).replace(/\./, ''),
         p.classList.add('markdown-body'),
         p.setAttribute('data-mdfile',
-            ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) == -1 ? enMdPath : cnMdPath
+            language == 'en' ? enMdPath : cnMdPath
         );
+
     if (document.body.clientHeight > document.body.clientWidth) {
         p.classList.add('mob');
     }
@@ -114,10 +128,17 @@ overflow: auto;
     margin:0;
     border:0;
 }
+
+#${p.id}.mob.hide {
+    min-height:0!important;
+    max-height:0!important;
+}
 `;
 
     [p, style].every(dom => document.body.appendChild(dom));
     loadMarkdownFile(() => {
         hljs.initHighlightingOnLoad();
+        mdTempletsInsert(p);
+        addBackToCatalog();
     });
 }

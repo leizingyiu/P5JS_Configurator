@@ -1,6 +1,6 @@
 <!-- 
 // Created: 2022/03/07 16:13:00
-// Last modified: "2022/05/10 17:38:26"
+// Last modified: "2022/05/10 17:38:22"
  -->
 <!DOCTYPE html>
 <html>
@@ -41,13 +41,12 @@
   <!-- <p id="readme" class="markdown-body" data-mdFile='./README_en.md'></p> -->
 
   <script src="/util/util.js"></script>
-
+  <!-- <script src="./PC.js"></script> -->
   <script src="./PC.js"></script>
+  <script src="./PC_addons.js"></script>
 
-  <!-- <script type="module" src="./PC.js"></script> -->
-  <script type='module' src="./PC_addons.js"></script>
-
-  <script type='module' src="./sketch.js"></script>
+  <!-- <script src="./sketch.js"></script> -->
+  <script src="./sketch_none_module.js"></script>
 
 
   <link rel="stylesheet" href="/libraries/markdown.css">
@@ -64,36 +63,46 @@
   <script src="/util/loadMarkdownFile.js"></script>
 
 
-  <script type="module">
-    import { sketch } from './sketch.js'
-
-    let p = new p5(sketch, document.body);
-
+  <script>
+    // import {sketch} from './sketch.js'
     //  import {PC} from '/PC.js';
 
+    // let p=   new p5(sketch,document.body);
 
-    let _pc = new PC({
-      ctrler_width: 400,
-      updateWithUrlBoo: false,
-      updateWithCookieBoo: false,
-      showToolsBoo: false
-    }, p);
-    _pc.radio('script_type', ['normal', 'module'], (e) => {
-      if (script_type == 'normal') {
-        window.location.href = '/index_none_module.html';
-      } else if (script_type == 'module') {
-        window.location.href = '/index.html';
+    // setTimeout(()=>{
+
+    // },1000);
+
+    let runTime = 0;
+    let tempDraw = window.draw;
+    window.draw = function () {
+
+      if (runTime == 0) {
+        let _pc = new PC({
+          ctrler_width: 400,
+          updateWithUrlBoo: false,
+          updateWithCookieBoo: false,
+          showToolsBoo: false
+        }, window);
+        _pc.radio('script_type', ['normal', 'module'], (e) => {
+          if (script_type == 'normal') {
+            window.location.href = '/index_none_module.html';
+          } else if (script_type == 'module') {
+            window.location.href = '/index.html';
+          }
+        });
+        _pc.a('moduleTypeSource', '/sketch_none_module.js', 'script in module type')
+        _pc.stick('top');
+        runTime = 1;
       }
-    });
-    _pc.a('moduleTypeSource', '/script.js', 'script in module type')
-    _pc.stick('top');
 
+      tempDraw();
+    }
 
   </script>
-
-  <script>loadReadmeFile();</script>
-
-
+  <script>
+    loadReadmeFile();
+  </script>
 
 </body>
 

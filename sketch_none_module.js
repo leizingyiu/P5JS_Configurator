@@ -4,7 +4,8 @@
 // import {PC} from './PC.js';
 
 
-let pc, grp, sld, btnN = 0, cnv, _slider3;
+var pc, grp, sld, btnN = 0,cnv;
+
 const language = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) != -1 ? 'cn' : 'en';
 const contentText = {
   'cn': {
@@ -40,14 +41,12 @@ const contentText = {
     }
 
   }
-}[language];
+} [language];
 let txtFileContent = contentText.txtFileContent;
 const drawVariableArr = ['_slider', '_slider2', '_button', '_check_box', '_sel', '_radio', '_color', '', 'grpSlider', 'grpSelect', 'grpRadio', '', 'txtInput', 'txtareaTesting', 'txtFileContent'];
 
-// const ballsObj = new Balls();
 
-const sketch = p => {
-  p.preload = function () {
+  function preload  () {
 
     /** 初始化控制器 | Initialize the controller */
     pc = new PC({
@@ -56,7 +55,7 @@ const sketch = p => {
       updateWithCookieBoo: true,
       autoHideBoo: false,
       ctrler_width: 300
-    }, p);
+    });
 
     /** 控制器功能 | Controller Features */
     pc.slider('_slider', 20, 0, 100, 1).alt('testing');
@@ -70,8 +69,8 @@ const sketch = p => {
     pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {
       console.log('box clicked');
     });
-    pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
-    pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
+    pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => {});
+    pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => {});
     pc.color('_color', '#fff');
 
 
@@ -83,7 +82,7 @@ const sketch = p => {
     pc.fileinput('loadTxt', (e) => {
       console.log(this, this.value, e, e.data);
       txtFileContent = e.data;
-      p.loadStrings(e.data, (arr) => {
+      loadStrings(e.data, (arr) => {
         txtFileContent = arr.join('\n');
         console.log(txtFileContent);
       });
@@ -120,14 +119,14 @@ const sketch = p => {
 
 
     [{
-      'grpSlider': contentText.grpSlider
-    },
-    {
-      'grpSelect': contentText.grpSelect
-    },
-    {
-      'grpRadio': contentText.grpRadio
-    }
+        'grpSlider': contentText.grpSlider
+      },
+      {
+        'grpSelect': contentText.grpSelect
+      },
+      {
+        'grpRadio': contentText.grpRadio
+      }
     ].map(ar => {
       let k = Object.keys(ar)[0],
         v = ar[k];
@@ -195,41 +194,38 @@ const sketch = p => {
     }).alt(contentText.addCtrlerAlt);
   }
 
-  p.setup = function () {
-    cnv = p.createCanvas(document.body.clientWidth, document.body.clientWidth / 16 * 9);
-    console.log(p.canvas.parentElement);
+  function setup  () {
+    cnv = createCanvas(windowWidth, windowHeight);
 
     cnv.mouseClicked(() => {
-      if (p.isLooping()) {
-        p.noLoop()
+      if (isLooping()) {
+        noLoop()
       } else {
-        p.loop();
+        loop();
       }
     });
 
-    p.loadReadmeDocIntoPage();
-
-    p.resizeCanvas(Math.min(p.canvas.parentElement.clientWidth, window.innerWidth), Math.min(p.canvas.parentElement.clientHeight, window.innerHeight));
+    loadReadmeDocIntoPage();
 
     document.addEventListener('onpagehide', () => {
-      p.noLoop();
+      noLoop();
     });
     document.addEventListener('onpageshow', () => {
-      p.loop();
+      loop();
     });
   }
 
-  p.draw = function () {
+  function draw  () {
     const margin = 20;
-    window._slider3 = (Math.sin((p.frameCount % 100) / 100 * Math.PI * 2) + 1) * 50;
+    window._slider3 = (Math.sin((frameCount % 100) / 100 * Math.PI * 2) + 1) * 50;
 
-    p.background(222);
+    background(222);
 
     //在画布上显示控制器数据内容 ｜ Display controller data content on canvas
     drawVariableArr.map((n, idx) => {
       let str;
       if (n == '') {
-        p.text('----------------------', 20, 10 + 20 * (idx + 1), p.width - 20, p.height - 10 + 20 * (idx + 1));
+        text('----------------------', 20, 10 + 20 * (idx + 1), width - 20, height - 10 + 20 * (idx + 1));
         return
       }
 
@@ -239,19 +235,19 @@ const sketch = p => {
         str = n + ' : ' + eval(n);
       }
 
-      p.text(str, margin, 10 + 20 * (idx + 1), p.width - margin, p.height - 10 + 20 * (idx + 1));
+      text(str, margin, 10 + 20 * (idx + 1), width - margin, height - 10 + 20 * (idx + 1));
       if (n == '_color' || n == '_color2') {
-        p.push();
-        p.fill(eval(n));
-        p.rectMode(p.CENTER);
-        p.rect(7 + p.textWidth('10') + p.textSize() + p.textWidth(str), 7 + 20 * (idx + 2) - p.textSize(), p.textSize(), p.textSize());
-        p.pop();
+        push();
+        fill(eval(n));
+        rectMode(CENTER);
+        rect(7 + textWidth('10') + textSize() + textWidth(str), 7 + 20 * (idx + 2) - textSize(), textSize(), textSize());
+        pop();
       }
     });
 
     // 启动时console控制器的初始化数据，然后 移动控制器到画布内容旁边
     // Display the controller's initialization data on startup, then move the controller next to the canvas content
-    if (p.frameCount <= 1) {
+    if (frameCount <= 1) {
       const consoleCode = drawVariableArr.map(v => Boolean(v) ? v : '').map(v => !v.match(/\S/) ? v : `${v} = \${${v}} ,\t// => ${eval(v)}`).join('\n');
       console.log(consoleCode.split('\n')
         .map((s, idx, ar) => {
@@ -265,50 +261,46 @@ const sketch = p => {
         .join('\n')
       );
 
-      if (p.width >= 1280 && p.width > p.height) {
-        const initializationText = drawVariableArr.map(n => n + ' : ' + eval(n)).sort((a, b) => p.textWidth(b) - p.textWidth(a))[0];
-        const textWidthOfInitTxt = p.textWidth(initializationText);
+      if (width >= 1280 && width > height) {
+        const initializationText = drawVariableArr.map(n => n + ' : ' + eval(n)).sort((a, b) => textWidth(b) - textWidth(a))[0];
+        const textWidthOfInitTxt = textWidth(initializationText);
         pc.mainContainer.position(60 + textWidthOfInitTxt, 30, 'absolute');
         pc.mainContainer.elt.style.bottom = 'unset';
       }
     }
 
     { // 绘制背景提示文字 | Draw background prompt text
-      p.push();
+      push();
       let fSize = 128;
-      const bgTxt = contentText.cnvPause[p.isLooping()];
-      p.fill(168);
-      p.rectMode(p.CENTER);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.textStyle("light");
-      p.textSize(fSize);
-      const tWidth = p.textWidth(bgTxt);
-      fSize = tWidth > p.width * 0.5 ? fSize * p.width / tWidth * 0.8 : fSize;
+      const bgTxt = contentText.cnvPause[isLooping()];
+      fill(168);
+      rectMode(CENTER);
+      textAlign(CENTER, CENTER);
+      textStyle("light");
+      textSize(fSize);
+      const tWidth = textWidth(bgTxt);
+      fSize = tWidth > width * 0.5 ? fSize * width / tWidth * 0.8 : fSize;
       fSize = fSize < 24 ? 24 : fSize;
-      p.textSize(fSize);
-      p.text(bgTxt, p.width / 2, p.height / 2);
-      p.pop();
+      textSize(fSize);
+      text(bgTxt, width / 2, height / 2);
+      pop();
     }
 
 
     {
-      p.text('fps: ' + Number(p.frameRate()).toFixed(0), margin, p.height - margin);
+      text('fps: ' + Number(frameRate()).toFixed(0), margin, height - margin);
     }
   }
 
-  // p.windowResized = function () {
-  //   p.resizeCanvas(p.windowWidth, p.windowHeight);
-  // }
+  function windowResized  () {
+    resizeCanvas(windowWidth, windowHeight);
+  }
 
-  p.loadReadmeDocIntoPage = function () {
+  function loadReadmeDocIntoPage  () {
     // loadReadmeFile();
-    if (p.height > p.width) {
+    if (height > width) {
       pc.mainContainer.elt.setAttribute("stick", "bottom right");
     }
-    // p.resizeCanvas(document.body.clientWidth, p.windowHeight);
+    // resizeCanvas(document.body.clientWidth, windowHeight);
   }
-};
 
-export {
-  sketch
-};

@@ -1,7 +1,7 @@
 // readmore: https://leizingyiu.github.io/p5js_Ctrler/index.html
 // github:   https://github.com/leizingyiu/p5js_Ctrler
 
-// import {PC} from './PC.js';
+import { PC } from './PC_0.0.2.js';
 
 
 let pc, grp, sld, btnN = 0, cnv, _slider3;
@@ -56,7 +56,7 @@ const sketch = p => {
       updateWithCookieBoo: true,
       autoHideBoo: false,
       ctrler_width: 300
-    }, p);
+    }, p).title('p5js_ctrler 0.0.2');
 
     /** 控制器功能 | Controller Features */
     pc.slider('_slider', 20, 0, 100, 1).alt('testing');
@@ -197,8 +197,6 @@ const sketch = p => {
 
   p.setup = function () {
     cnv = p.createCanvas(document.body.clientWidth, document.body.clientWidth / 16 * 9);
-    console.log(p.canvas.parentElement);
-
     cnv.mouseClicked(() => {
       if (p.isLooping()) {
         p.noLoop()
@@ -208,8 +206,6 @@ const sketch = p => {
     });
 
     p.loadReadmeDocIntoPage();
-
-    p.resizeCanvas(Math.min(p.canvas.parentElement.clientWidth, window.innerWidth), Math.min(p.canvas.parentElement.clientHeight, window.innerHeight));
 
     document.addEventListener('onpagehide', () => {
       p.noLoop();
@@ -221,7 +217,7 @@ const sketch = p => {
 
   p.draw = function () {
     const margin = 20;
-    window._slider3 = (Math.sin((p.frameCount % 100) / 100 * Math.PI * 2) + 1) * 50;
+    _slider3 = (Math.sin((p.frameCount % 100) / 100 * Math.PI * 2) + 1) * 50;
 
     p.background(222);
 

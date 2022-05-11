@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/11 00:44:01"
+// Last modified: "2022/05/11 00:46:04"
 
 class PC {
 
@@ -74,7 +74,7 @@ class PC {
 
         this.#_parentTarget = this.ctrlersContainer;
         this.target = target;
-
+        
         //设置外层容器
         this.mainContainer = this.target.createDiv();
         this.mainContainer.id(this.id);
@@ -1017,7 +1017,7 @@ defaultVal, minVal, maxVal, precision need number`);
         return this;
     };
 
-    a(name, href, html, target) {
+    a(name,href, html,target){
         let nameCheckingResult = this.#checkCtrlerName(name), nameAnonymous = false;
         if (arguments.length == 0 || this.#checkCtrlerName(name) !== true) {
             name = nameCheckingResult;
@@ -1026,7 +1026,7 @@ defaultVal, minVal, maxVal, precision need number`);
 
         this.#recordArgs(...arguments);
 
-        this.ctrlers[name] = this.target.createA(href, html, target);
+        this.ctrlers[name] =this.target.createA(href,html,target);
         this.ctrlers[name].type = 'a';
         this.ctrlers[name].href = href;
         this.ctrlers[name].nameAnonymous = nameAnonymous;
@@ -1333,12 +1333,12 @@ defaultVal, minVal, maxVal, precision need number`);
                     console.log(`updating ${name} error, and clicked it`);
                 };
                 break;
-            case 'a':
-                this.ctrlers[name].href = value;
-                this.ctrlers[name].elt.href = value;
-                break;
+          case 'a':
+            this.ctrlers[name].href=value;
+            this.ctrlers[name].elt.href=value;
+          break;
 
-            default:
+        default:
                 this.ctrlers[name].elt.value = value;
                 break;
         }
@@ -1386,8 +1386,8 @@ defaultVal, minVal, maxVal, precision need number`);
     };
 
     range(name, min, max) {
-        if (this.ctrlers[name].type != 'slider') {
-            throw ('Please use range() and precision() on slider controller');
+        if(this.ctrlers[name].type!='slider'){
+            throw('Please use range() and precision() on slider controller');
         }
         this.ctrlers[name].elt.setAttribute('min', min);
         this.ctrlers[name].elt.setAttribute('max', max);
@@ -1727,12 +1727,12 @@ defaultVal, minVal, maxVal, precision need number`);
         _that.hideY = window.innerHeight;
         _that.l = 0, _that.t = 0, _that.w = 0, _that.h = 0;
 
-        _that.mousemove = false;
+        _that.mousemove=false;
 
         _that.updated = true;
 
         _that.elementDrag = function (e) {
-            _that.mousemove = true;
+            _that.mousemove=true;
 
             e = e || window.event;
             _that.l = elmnt.offsetLeft,
@@ -1744,20 +1744,20 @@ defaultVal, minVal, maxVal, precision need number`);
             pos2 = pos4 - e.clientY;
             pos3 = e.clientX;
             pos4 = e.clientY;
+            
+            if(pos1===pos2&&pos2===0){
+                _that.mousemove=false;
+            }else{
+            // set the element's new position:
+            elmnt.style.top = Math.max(0, Math.min((_that.t - pos2), window.innerHeight - _that.h)) + "px";
+            elmnt.style.left = Math.max(0, Math.min((_that.l - pos1), window.innerWidth - _that.w)) + "px";
+            elmnt.style.bottom = 'unset';
+            elmnt.style.right = 'unset';
 
-            if (pos1 === pos2 && pos2 === 0) {
-                _that.mousemove = false;
-            } else {
-                // set the element's new position:
-                elmnt.style.top = Math.max(0, Math.min((_that.t - pos2), window.innerHeight - _that.h)) + "px";
-                elmnt.style.left = Math.max(0, Math.min((_that.l - pos1), window.innerWidth - _that.w)) + "px";
-                elmnt.style.bottom = 'unset';
-                elmnt.style.right = 'unset';
-
-                if (_that.l + _that.w < window.innerWidth && _that.l > 0 && _that.t + _that.h < window.innerHeight && _that.t > 0) {
-                    elmnt.removeAttribute(stickAttrName);
-                }
+            if (_that.l + _that.w < window.innerWidth && _that.l > 0 && _that.t + _that.h < window.innerHeight && _that.t > 0) {
+                elmnt.removeAttribute(stickAttrName);
             }
+}
         }
 
         _that.attrAddVal = function (attr, val, replaceReg = val) {
@@ -1798,8 +1798,8 @@ defaultVal, minVal, maxVal, precision need number`);
                 _that.w = elmnt.offsetWidth,
                 _that.h = elmnt.offsetHeight;
 
-
-
+           
+            
             let before = elmnt.getAttribute(stickAttrName);
             switch (true) {
                 case _that.l + _that.w < this.target.windowWidth / 2 && _that.t + _that.h < this.target.windowHeight / 2:
@@ -1857,7 +1857,7 @@ defaultVal, minVal, maxVal, precision need number`);
             document.onmousemove = null;
         }
         _that.dragMouseDown = function (e) {
-            _that.mousemove = false;
+            _that.mousemove=false;
             e = e || window.event;
             pos3 = e.clientX;
             pos4 = e.clientY;
@@ -1912,14 +1912,6 @@ defaultVal, minVal, maxVal, precision need number`);
             #${this.id}[${stickAttrName}*=right].autoHide:hover,
             #${this.id}[${stickAttrName}].autoHide:hover{
                 padding:var(--unit-length) var(--unit-length)!important;
-            }
-            
-            #${this.id}[${stickAttrName}*=top].autoHide.fold:hover,
-            #${this.id}[${stickAttrName}*=bottom].autoHide.fold:hover,
-            #${this.id}[${stickAttrName}*=left].autoHide.fold:hover,
-            #${this.id}[${stickAttrName}*=right].autoHide.fold:hover,
-            #${this.id}[${stickAttrName}].autoHide.fold:hover{
-                padding:0!important;
             }
             
             #${this.id}[${stickAttrName}*=top].autoHide #${this.id}_inner,
@@ -2039,16 +2031,16 @@ defaultVal, minVal, maxVal, precision need number`);
             `
             this.mainContainer.elt.appendChild(style);
             let that = this;
-            document.getElementById(elmnt.id + "_header").onmouseup = function (e) {
-                console.log(e);
-                let style = that.mainContainer.elt.style;
-                let top = style.getPropertyValue('top'), bottom = style.getPropertyValue('bottom');
-                let stick = that.mainContainer.elt.hasAttribute(stickAttrName);
-                console.log(top, bottom, stick);
-                if (_that.mousemove === false && that.mainContainer.elt.hasAttribute(stickAttrName)) {
+            document.getElementById(elmnt.id + "_header").onmouseup = function (e) {    
+                console.log(e);            
+                let style=that.mainContainer.elt.style;
+                let top=style.getPropertyValue('top'),bottom=style.getPropertyValue('bottom');
+                let stick=that.mainContainer.elt.hasAttribute(stickAttrName);
+                console.log(top,bottom,stick);
+                if(_that.mousemove===false && that.mainContainer.elt.hasAttribute(stickAttrName)){
                     console.log('fold');
-                    that.mainContainer.elt.classList.toggle('fold');
-                }
+                    that.mainContainer.elt.classList.toggle('fold');      
+                   }
 
             };
             function canvasFoldCtrler() {
@@ -2058,6 +2050,7 @@ defaultVal, minVal, maxVal, precision need number`);
             if (typeof this.target.drawingContext != 'undefined' && this.settings.autoHideBoo == true) {
                 this.target.drawingContext.canvas.addEventListener('click', canvasFoldCtrler);
             }
+
 
 
         }
@@ -2341,5 +2334,5 @@ defaultVal, minVal, maxVal, precision need number`);
         return [].concat(Object.keys(this.groups), Object.keys(this.ctrlers));
     }
 }
-// export {PC} // export it if you want
 
+export {PC}

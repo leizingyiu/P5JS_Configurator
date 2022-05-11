@@ -3,14 +3,14 @@
 // Last modified: "2022/04/26 21:51:28"
  -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PC - p5js Ctrler - by leizingyiu</title>
-  <link rel="stylesheet" type="text/css" href="./style/style.css">
+  <link rel="stylesheet" type="text/css" href="/style/style.css">
 
   <script src="https://unpkg.com/@free-side/audioworklet-polyfill/dist/audioworklet-polyfill.js">
     /* 
@@ -23,15 +23,14 @@
   </script>
 
 
-  <script src="./libraries/p5.min.js"></script>
-  <script src="./libraries/p5.sound.min.js"></script>
+  <script src="/libraries/p5.min.js"></script>
+  <script src="/libraries/p5.sound.min.js"></script>
 
   <script>
-    enMdPath = './README_wip.md',
-    cnMdPath = './README_wip.md';
+    enMdPath = './README_0.0.2.md',
+    cnMdPath = './README_0.0.2.md';
   </script>
-  <script src="./util/loadMarkdownFile.js">
-  </script>
+ 
 
 
 
@@ -40,27 +39,36 @@
 <body>
   <!-- <p id="readme" class="markdown-body" data-mdFile='./README_en.md'></p> -->
 
-<script src="./util/util.js"></script>
+<script src="/util/util.js"></script>
   <!-- <script src="./PC.js"></script> -->
-  <script src="./PC_wip.js"></script>
-  <script src="./PC_addons.js"></script>
+  <script type="module" src="./PC_0.0.2.js"></script>
+  <script type='module' src="./PC_addons_0.0.2.js"></script>
 
   <!-- <script src="./sketch.js"></script> -->
-  <script src="./sketch_wip.js"></script>
+  <script type='module' src="./sketch_0.0.2.js"></script>
 
-  <!-- <link rel="stylesheet" href="./libraries/markdown.css"> -->
-  <link rel="stylesheet" href="./libraries/markdown_yiu.css">
+
+  <link rel="stylesheet" href="/libraries/markdown.css">
 
   <!-- <script type="text/javascript" src="//cdn.jsdelivr.net/npm/marked/marked.min.js"></script> -->
-  <script type="text/javascript" src="./libraries/marked.min.js"></script>
+  <script type="text/javascript" src="/libraries/marked.min.js"></script>
 
   <!-- <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/atom-one-light.min.css"> -->
-  <link rel="stylesheet" href="./libraries/atom-one-light.min.css">
+  <link rel="stylesheet" href="/libraries/atom-one-light.min.css">
 
   <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script> -->
-  <script src="./libraries/highlight.min.js"></script>
+  <script src="/libraries/highlight.min.js"></script>
+
+  <script src="/util/loadMarkdownFile.js"></script>
 
 
+<script type="module">
+  import {sketch} from './sketch_0.0.2.js'
+
+  new p5(sketch);
+</script>
+
+  <script>loadReadmeFile();</script>
 
 </body>
 

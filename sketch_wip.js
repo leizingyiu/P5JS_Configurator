@@ -1,7 +1,8 @@
 // readmore: https://leizingyiu.github.io/p5js_Ctrler/index.html
 // github:   https://github.com/leizingyiu/p5js_Ctrler
 
-let pc, grp, sld, btnN = 0, cnv;
+let pc, grp, sld, btnN = 0,
+  cnv;
 const language = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) != -1 ? 'cn' : 'en';
 const contentText = {
   'cn': {
@@ -37,7 +38,7 @@ const contentText = {
     }
 
   }
-}[language];
+} [language];
 let txtFileContent = contentText.txtFileContent;
 const drawVariableArr = ['_slider', '_slider2', '_button', '_check_box', '_sel', '_radio', '_color', '', 'grpSlider', 'grpSelect', 'grpRadio', '', 'txtInput', 'txtareaTesting', 'txtFileContent'];
 
@@ -66,8 +67,8 @@ function preload() {
   pc.checkbox('_check_box', false, ['yeees', 'nooo'], () => {
     console.log('box clicked');
   });
-  pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => { });
-  pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => { });
+  pc.select('_sel', ['sel a', 'sel b', 'sel c'], () => {});
+  pc.radio('_radio', ['radio a', 'radio b', 'radio c'], () => {});
   pc.color('_color', '#fff');
 
 
@@ -115,10 +116,18 @@ function preload() {
     .radio('grpRadio', ['grpRadio_D', 'grpRadio_E']);
 
 
-  [{ 'grpSlider': contentText.grpSlider },
-  { 'grpSelect': contentText.grpSelect },
-  { 'grpRadio': contentText.grpRadio }].map(ar => {
-    let k = Object.keys(ar)[0], v = ar[k];
+  [{
+      'grpSlider': contentText.grpSlider
+    },
+    {
+      'grpSelect': contentText.grpSelect
+    },
+    {
+      'grpRadio': contentText.grpRadio
+    }
+  ].map(ar => {
+    let k = Object.keys(ar)[0],
+      v = ar[k];
     pc.displayName(k, v);
   })
 
@@ -143,7 +152,7 @@ function preload() {
 
   /** 链式调用方式
    * chain call
-  */
+   */
   pc.slider()
     .displayName('')
     .range(-100, 100)
@@ -170,7 +179,7 @@ function preload() {
     'color': 'name = "new_color", \ndefaultVal="#FFF" ',
   }
   pc.radio('add_ctrler_type', ['slider', 'radio', 'button', 'checkbox', 'select', 'color'], (e) => {
-    let type = e.path[0].value;
+    let type = e.target.value;
     add_ctrler_para = typeParas[type];
   });
   pc.textarea('add_ctrler_para');
@@ -186,13 +195,25 @@ function preload() {
 function setup() {
   cnv = createCanvas(document.body.clientWidth, windowHeight);
   cnv.mouseClicked(() => {
-    if (isLooping()) { noLoop() } else { loop(); }
+    if (isLooping()) {
+      noLoop()
+    } else {
+      loop();
+    }
   });
 
   loadReadmeDocIntoPage();
+
+  document.addEventListener('onpagehide', () => {
+    noLoop();
+  });
+  document.addEventListener('onpageshow', () => {
+    loop();
+  });
 }
 
 function draw() {
+  const margin = 20;
   _slider3 = (Math.sin((frameCount % 100) / 100 * Math.PI * 2) + 1) * 50;
 
   background(222);
@@ -211,7 +232,7 @@ function draw() {
       str = n + ' : ' + eval(n);
     }
 
-    text(str, 20, 10 + 20 * (idx + 1), width - 20, height - 10 + 20 * (idx + 1));
+    text(str, margin, 10 + 20 * (idx + 1), width - margin, height - 10 + 20 * (idx + 1));
     if (n == '_color' || n == '_color2') {
       push();
       fill(eval(n));
@@ -227,7 +248,9 @@ function draw() {
     const consoleCode = drawVariableArr.map(v => Boolean(v) ? v : '').map(v => !v.match(/\S/) ? v : `${v} = \${${v}} ,\t// => ${eval(v)}`).join('\n');
     console.log(consoleCode.split('\n')
       .map((s, idx, ar) => {
-        let ls = ar.map(ar_s => ar_s.match(/\S/) ? ar_s.match(/[^\t]+/)[0].length : 0), l = ls[idx], max = Math.max(...ls);
+        let ls = ar.map(ar_s => ar_s.match(/\S/) ? ar_s.match(/[^\t]+/)[0].length : 0),
+          l = ls[idx],
+          max = Math.max(...ls);
         let num = Math.ceil((max - l) / 4) + 1;
         let txt = s.replace(/\t/, [...new Array(num)].map(_ => '\t').join(''));
         return txt;
@@ -247,20 +270,23 @@ function draw() {
     push();
     let fSize = 128;
     const bgTxt = contentText.cnvPause[isLooping()];
-    fill(168); rectMode(CENTER); textAlign(CENTER, CENTER); textStyle("light"); textSize(fSize);
+    fill(168);
+    rectMode(CENTER);
+    textAlign(CENTER, CENTER);
+    textStyle("light");
+    textSize(fSize);
     const tWidth = textWidth(bgTxt);
-    fSize = tWidth > width * 0.5 ? fSize * width / tWidth * 0.8 : fSize; fSize = fSize < 24 ? 24 : fSize;
-    textSize(fSize); text(bgTxt, width / 2, height / 2);
+    fSize = tWidth > width * 0.5 ? fSize * width / tWidth * 0.8 : fSize;
+    fSize = fSize < 24 ? 24 : fSize;
+    textSize(fSize);
+    text(bgTxt, width / 2, height / 2);
     pop();
   }
 
-  document.addEventListener('onpagehide', () => {
-    noLoop();
-  });
-  document.addEventListener('onpageshow', () => {
-    loop();
-  });
 
+  {
+    text('fps: ' + Number(frameRate()).toFixed(0), margin, height - margin);
+  }
 }
 
 function windowResized() {
@@ -274,4 +300,3 @@ function loadReadmeDocIntoPage() {
   }
   resizeCanvas(document.body.clientWidth, windowHeight);
 }
-
