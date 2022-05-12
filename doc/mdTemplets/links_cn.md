@@ -5,14 +5,14 @@
         <a href='./index_none_module.html'>/index_none_module.html<small> ｜ 未使用import</small></a> 
         <a href='./sketch_none_module.js'>/sketch_none_module.js<small> ｜ 普通的 p5js 脚本</small></a><br>
         <a style='display:block;width:100%;height:0px;border-top:solid 0.5px #ccc;margin: 0.5em 0em !important;'></a>  
-        <a href='./diff.html?leftFile=./index.html&rightFile=./index_none_module.html'>/diff.html?file=index...<small> ｜ 查看html对比</small></a> 
-        <a href='./diff.html?leftFile=./sketch.js&rightFile=./sketch_none_module.js'>/diff.html?file=script...<small> ｜ 查看sketch 脚本对比</small></a>
+        <a href='./util/diff.html?leftFile=../index.html&rightFile=../index_none_module.html'>/util/diff.html?file=index...<small> ｜ 查看html对比</small></a> 
+        <a href='./util/diff.html?leftFile=../sketch.js&rightFile=../sketch_none_module.js'>/util/diff.html?file=script...<small> ｜ 查看sketch 脚本对比</small></a>
     </span>
     </p>
     <p><span>查看较旧版本：</span><span><a href='./versions/index.html'>/versions/index.html</a></span></p>
-    <p><span>查看范例：</span><span><a href='./examples.html'>/examples.html</a></span></p>
-    <p><span>查看wip版本：</span><span><a href='./index_wip.html'>/index_wip.html</a></span></p>
-    <p><span>查看wip范例：</span><span><a href='./examples_wip.html'>/examples_wip.html</a></span></p>
+    <p><span>查看范例：</span><span><a href='./examples/examples.html'>/examples.html</a></span></p>
+    <p><span>查看wip版本：</span><span><a href='./.wip/index_wip.html'>/index_wip.html</a></span></p>
+    <p><span>查看wip范例：</span><span><a href='./.wip/examples_wip.html'>/examples_wip.html</a></span></p>
     <p><span>马上试试：</span><span><a
                 href='https://openprocessing.org/sketch/1537105'>https://openprocessing.org/sketch/1537105</a><span></p>
 </div>

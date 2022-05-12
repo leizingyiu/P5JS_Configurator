@@ -2,7 +2,7 @@ english : <https://github.com/leizingyiu/p5js_Ctrler/blob/main/README_en.md>
 # PC - p5js Ctrler
 一个可以在 p5js 运行时，实时操控代码变量的插件。  
     
-<#ver_links_cn#>
+<#links_cn#>
   
 ## 目录  
 - [示例](#示例)  

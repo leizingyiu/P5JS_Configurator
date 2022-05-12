@@ -1,7 +1,7 @@
 # PC - p5js Ctrler
 A plugin that can manipulate code variables in real time while p5js is running.
   
-<#ver_links_en#>
+<#links_en#>
   
 ## Catalog
 [Example](#example)  

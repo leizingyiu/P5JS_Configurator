@@ -5,7 +5,7 @@ import {
     _preload,
     _setup,
     _windowResized
-} from '../Example.js';
+} from './Example.js';
 
 var pc, fxTxt, pfx;
 window.preload = () => {

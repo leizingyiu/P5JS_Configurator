@@ -1,6 +1,6 @@
 <!-- 
 // Created: 2022/03/07 16:13:00
-// Last modified: "2022/05/11 14:44:07"
+// Last modified: "2022/05/12 15:05:50"
  -->
 <!DOCTYPE html>
 <html>
@@ -28,8 +28,9 @@
   <script src="./libraries/p5.sound.min.js"></script>
 
   <script>
-    enMdPath = './README_en.md',
-      cnMdPath = './README.md';
+    enMdPath = './doc/README_en.md',
+      cnMdPath = './doc/README_cn.md',
+      mdtempletsPath = './doc/mdTemplets'
   </script>
 
 
@@ -84,13 +85,15 @@
           updateWithCookieBoo: false,
           showToolsBoo: false
         }, window);
+        console.log();
         _pc.radio('script_type', ['normal', 'module'], (e) => {
-          if (script_type == 'normal') {
+          if (script_type == 'normal' && (!String(window.location).match('index_none_module.html'))) {
             window.location.href = './index_none_module.html';
-          } else if (script_type == 'module') {
+          } else if (script_type == 'module' && (String(window.location).match('index_none_module.html'))) {
             window.location.href = './index.html';
           }
         });
+        _pc.update('script_type', 'normal');
         _pc.a('moduleTypeSource', './sketch_none_module.js', 'script in module type')
         _pc.stick('top');
         runTime = 1;

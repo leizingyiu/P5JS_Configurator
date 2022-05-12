@@ -1,6 +1,6 @@
 <!-- 
 // Created: 2022/03/07 16:13:00
-// Last modified: "2022/05/07 03:14:09"
+// Last modified: "2022/05/12 12:34:51"
  -->
 <!DOCTYPE html>
 <html lang="en">
@@ -12,9 +12,9 @@
 
 
   <title>examples of p5js Ctrler - by leizingyiu</title>
-  <link rel="stylesheet" type="text/css" href="./style/style.css">
+  <link rel="stylesheet" type="text/css" href="../style/style.css">
 
-  <script src="./libraries/audioworklet-polyfill.js">
+  <script src="../libraries/audioworklet-polyfill.js">
     /*
     https://unpkg.com/@free-side/audioworklet-polyfill/dist/audioworklet-polyfill.js
     
@@ -26,15 +26,17 @@
     */
   </script>
 
-  <script src="./libraries/p5.min.js"></script>
-  <script src="./libraries/p5.sound.min.js"></script>
+  <script src="../libraries/p5.min.js"></script>
+  <script src="../libraries/p5.sound.min.js"></script>
   <!-- <script src="https://unpkg.com/p5.js-svg@1.1.1" type="text/javascript"></script> -->
 
   <script>
-    enMdPath = './README_wip.md',
-      cnMdPath = './README_wip.md';
+    enMdPath = '../doc/README_en.md',
+      cnMdPath = '../doc/README_cn.md',
+      mdtempletsPath = '../doc/mdTemplets',
+      mdtempletsHrefPrefix = '.';
   </script>
-  <script src="./util/loadMarkdownFile.js">
+  <script src="../util/loadMarkdownFile.js">
   </script>
 
 
@@ -42,9 +44,9 @@
 </head>
 
 <body>
-  <script src="./util/util.js"></script>
-  <script src="./PC_wip.js"></script>
-  <script src="./PC_addons.js"></script>
+  <script src="../util/util.js"></script>
+  <script src="../PC.js"></script>
+  <script src="../PC_addons.js"></script>
 
   <p style="position: absolute;left:0;top:0;z-index:-1;">如果你看到这段话，估计是加载缓慢，或者有bug，尝试刷新，或者与我反馈 <br>If you see this
     paragraph, it is estimated that the loading is slow, or there is a bug, try to refresh, or give me feedback</p>
@@ -71,13 +73,13 @@
     }
     if (examplesArr.includes(_example)) {
       let script = document.createElement('script');
-      script.src = `./examples/${_example}.js`;
+      script.src = `../examples/${_example}.js`;
       script.type = 'module';
       document.getElementById('examplesNames').after(script);
     } else {
       examplesArr.map(exampleName => {
         let script = document.createElement('script');
-        script.src = `./examples/${exampleName}.js`;
+        script.src = `../examples/${exampleName}.js`;
         script.type = 'module';
         document.getElementById('examplesNames').after(script);
       });
@@ -93,16 +95,16 @@
 
 
   <!-- <link rel="stylesheet" href="./libraries/markdown.css"> -->
-  <link rel="stylesheet" href="./libraries/markdown_yiu.css">
+  <link rel="stylesheet" href="../libraries/markdown_yiu.css">
 
   <!-- <script type="text/javascript" src="//cdn.jsdelivr.net/npm/marked/marked.min.js"></script> -->
-  <script type="text/javascript" src="./libraries/marked.min.js"></script>
+  <script type="text/javascript" src="../libraries/marked.min.js"></script>
 
   <!-- <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/atom-one-light.min.css"> -->
-  <link rel="stylesheet" href="./libraries/atom-one-light.min.css">
+  <link rel="stylesheet" href="../libraries/atom-one-light.min.css">
 
   <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script> -->
-  <script src="./libraries/highlight.min.js"></script>
+  <script src="../libraries/highlight.min.js"></script>
 
 
 

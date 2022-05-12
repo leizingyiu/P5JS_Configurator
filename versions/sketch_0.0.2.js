@@ -193,6 +193,8 @@ const sketch = p => {
       console.log('create a new ctrler by code test: \n___\n' + fnTxt + '\n---\n', fn);
       fn();
     }).alt(contentText.addCtrlerAlt);
+
+    pc.title('p5js_Ctrler_0.0.2');
   }
 
   p.setup = function () {

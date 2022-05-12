@@ -1,12 +1,13 @@
-enMdPath = typeof enMdPath != 'undefined' && enMdPath ? enMdPath : './README_en.md', cnMdPath = typeof cnMdPath != 'undefined' && cnMdPath ? cnMdPath : './README.md';
-mdtempletsPath = typeof mdtempletsPath != 'undefined' && mdtempletsPath ? mdtempletsPath : './mdTemplets';
+enMdPath = typeof enMdPath != 'undefined' && enMdPath ? enMdPath : './README_en.md',
+    cnMdPath = typeof cnMdPath != 'undefined' && cnMdPath ? cnMdPath : './README.md',
+    mdtempletsPath = typeof mdtempletsPath != 'undefined' && mdtempletsPath ? mdtempletsPath : './mdTemplets',
+    mdtempletsHrefPrefix = typeof mdtempletsHrefPrefix != 'undefined' && mdtempletsHrefPrefix ? mdtempletsHrefPrefix : '';
 
 mdTempletsList = [
     'links_cn', 'links_en',
     'ver_links_cn', 'ver_links_en',
     'thanks'];
 mdTempletsListReg = new RegExp('(' + mdTempletsList.map(word => `(${word})`).join('|') + ')', 'g');
-console.log(mdTempletsListReg);
 
 
 
@@ -22,16 +23,22 @@ function mdTempletsInsert(dom) {
         let reg = new RegExp(`<#${filename}#>`, 'g');
         if ([...dom.querySelectorAll(`[data-md-templet=${filename}]`)].some(d => d.innerText.match(reg))) {
             fetch(fileUrl).then(response => response.text()).then(r => {
-                console.log(fileUrl, '\n', r);
                 [...dom.querySelectorAll(`[data-md-templet=${filename}]`)].map(d => {
                     let match = d.innerText.match(reg);
-                    console.log('match!!', match, 'reg!!', reg, 'd:', d);
                     if (match) {
                         let temp = document.createElement(d.localName);
                         temp.innerText = match[0];
                         let htmlReg = new RegExp(temp.innerHTML, 'g');
-                        console.log(htmlReg, temp.innerText);
-                        d.innerHTML = d.innerHTML.replace(htmlReg, marked.marked(r));
+                        let innerHtml = marked.marked(r);
+                        console.log(innerHtml);
+                        temp.innerHTML = innerHtml;
+                        [...temp.querySelectorAll('a')].filter(a=>a.href.match(window.location.hostname) != null).map(a => {
+                            // if (a.href.match(window.location.hostname) != null) {
+                                a.setAttribute('href', mdtempletsHrefPrefix + a.getAttribute('href'));  
+                            // }
+                        });
+                        console.log(temp.innerHTML);
+                        d.innerHTML = d.innerHTML.replace(htmlReg, temp.innerHTML);
                         delete temp;
                     }
                 });

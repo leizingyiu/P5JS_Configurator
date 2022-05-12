@@ -3,7 +3,8 @@ english : <a href='./README_en.md'>README_en.md</a>
 # PC - p5js Ctrler - Variable controller for p5js
 一个可以在 p5js 运行时，实时操控代码变量的插件。  
     
-<#ver_links_cn#>
+<#links_cn#>
+
 
 ## 目录  
 - [示例](#示例)  

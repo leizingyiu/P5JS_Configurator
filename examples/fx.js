@@ -4,7 +4,7 @@
 
 // export { __preload, __setup, __draw, Examples };
 
-import { language, _pc, _preload, _setup, _windowResized } from '../Example.js';
+import { language, _pc, _preload, _setup, _windowResized } from './Example.js';
 
 var fxTxt, pfxTxt;
 

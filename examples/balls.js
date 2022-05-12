@@ -4,7 +4,7 @@ import {
     _preload,
     _setup,
     _windowResized
-} from '../Example.js';
+} from './Example.js';
 var __pc;
 var pc, cnv,
     center,
@@ -126,11 +126,11 @@ window.__preload = () => {
         .slider('restyle_speed', 0.01, 0.01, 1, 0.01)
         .radio('draw_on_top', ['stroke', 'fill']);
 
-  /** p5js_ctrler settings: 
+    /** p5js_ctrler settings: 
      * 设置所有显示名称
      * set all display names
-    */
-        pc.displayName(pcDisplayDict);
+     */
+    pc.displayName(pcDisplayDict);
 };
 
 window.__setup = () => {
