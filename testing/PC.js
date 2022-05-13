@@ -1,15 +1,6 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/14 04:02:27"
+// Last modified: "2022/05/14 04:08:03"
 
-/** TODO
- * stick : 吸附到窗口/畫板
- * 
- * 整理錯誤信息
- * 
- * name col 添加 title 屬性
- * 
- * ctrl width 寬度顯示邏輯優化
- */
 class PC {
 
     constructor(settings = {
@@ -59,7 +50,7 @@ class PC {
 
         this.name = 'p5js_Ctrler';
         this.id = this.name;
-        this.version = '0.0.21';
+        this.version = '0.0.2';
         let existedDom = document.querySelectorAll(`[id*=${this.id}]`);
         if (existedDom.length > 0) {
             existedDom = [...existedDom].filter(dom => ['inner', 'header'].every(n => dom.id.indexOf(n) == -1));
@@ -781,11 +772,14 @@ defaultVal, minVal, maxVal, precision need number`);
 
 
         this.#recordArgs(...arguments);
+        debugger;
         this.ctrlers[name] = this.target.createCheckbox(name, defaultVal);
         this.ctrlers[name].labelText = {
             'true': labelText[0],
             'false': labelText[1]
         };
+        debugger;
+
         this.ctrlers[name].changed(fxn);
         this.ctrlers[name].type = 'checkbox';
         this.ctrlers[name].nameAnonymous = nameAnonymous;
@@ -799,7 +793,9 @@ defaultVal, minVal, maxVal, precision need number`);
             this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
         };
 
+        debugger;
         this.#initCtrler(name);
+        debugger;
         return this.ctrlers[name];
     };
 
