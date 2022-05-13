@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/14 04:08:03"
+// Last modified: "2022/05/14 04:41:11"
 
 class PC {
 
@@ -1185,8 +1185,10 @@ defaultVal, minVal, maxVal, precision need number`);
 
             that.#setParentTarget(that.groups[groupName]);
             // console.log('\n\ngroupFn: ', that, name, fn, that.#_parentTarget);
-
+            debugger;
             let ctrlerResult = that[fn](...args);
+            debugger;
+
             that.#setParentTarget();
 
             // console.log(that.groups[name], that.groups[name].elt.clientHeight);
