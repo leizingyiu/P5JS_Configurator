@@ -1,5 +1,5 @@
 // Created: 2022/04/56 16:56:00
-// Last modified: "2022/05/11 15:58:49"
+// Last modified: "2022/05/13 17:16:57"
 
 export var language = ["zh-CN", "zh-HK", "zh-MO", "zh-TW", "zh-SG"].indexOf(navigator.language) == -1 ? 'en' : 'cn';
 // var __preload, __setup, __draw,
@@ -69,12 +69,17 @@ export function _preload() {
     _pc.select('example', examplesArr, () => {
         const url = new URL(window.location.origin + window.location.pathname);
         const name = 'example';
-        url.searchParams.append(name, example);
+        const nowUrl = new URL(window.location.href);
+        if (nowUrl.searchParams.has(name) && nowUrl.searchParams.get(name) == example) {
+            return
+        } else {
+            url.searchParams.append(name, example);
 
-        document.querySelector('.markdown-body[id*=readme]').classList.add('hide');
-        setTimeout(() => {
-            window.location = url.href;
-        }, 500);
+            document.querySelector('.markdown-body[id*=readme]').classList.add('hide');
+            setTimeout(() => {
+                window.location = url.href;
+            }, 500);
+        }
     });
     _pc.button('hide_readme', 'hide readme', (e) => {
         document.querySelector('.markdown-body[id*=readme]').classList.toggle('hide');
@@ -112,6 +117,7 @@ export function _preload() {
     });
 
 
+
     _pc.stick('top');
 
     return _pc;
@@ -128,11 +134,9 @@ export function _setup() {
 
     resizeCanvas(document.body.clientWidth, windowHeight);
 
-
-    // _pc.mainContainer.position(null, 0);
-    // _pc.mainContainer.elt.style.bottom = 'unset';
-    // _pc.mainContainer.elt.setAttribute('stick', 'top');
-
+    let url = new URL(window.location.href);
+    let exampleName = url.searchParams.get('example');
+    _pc.update('example');
 
     console.log('example setuped');
 
