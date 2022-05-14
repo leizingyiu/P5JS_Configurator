@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/14 04:41:11"
+// Last modified: "2022/05/14 18:04:15"
 
 class PC {
 
@@ -772,30 +772,23 @@ defaultVal, minVal, maxVal, precision need number`);
 
 
         this.#recordArgs(...arguments);
-        debugger;
         this.ctrlers[name] = this.target.createCheckbox(name, defaultVal);
         this.ctrlers[name].labelText = {
             'true': labelText[0],
             'false': labelText[1]
         };
-        debugger;
-
         this.ctrlers[name].changed(fxn);
         this.ctrlers[name].type = 'checkbox';
         this.ctrlers[name].nameAnonymous = nameAnonymous;
 
         this.ctrlers[name].elt.style.display = 'flex';
-        this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        this.ctrlers[name].elt.oninput = _ => {
-            this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        };
-        this.ctrlers[name].elt.onchange = _ => {
-            this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        };
+        const updateLabel = () => {
+            this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[String(this.ctrlers[name].checked())];
+        }
+        this.ctrlers[name].elt.oninput = _ => { updateLabel(); };
+        this.ctrlers[name].elt.onchange = _ => { updateLabel(); };
 
-        debugger;
         this.#initCtrler(name);
-        debugger;
         return this.ctrlers[name];
     };
 
@@ -1185,10 +1178,8 @@ defaultVal, minVal, maxVal, precision need number`);
 
             that.#setParentTarget(that.groups[groupName]);
             // console.log('\n\ngroupFn: ', that, name, fn, that.#_parentTarget);
-            debugger;
-            let ctrlerResult = that[fn](...args);
-            debugger;
 
+            let ctrlerResult = that[fn](...args);
             that.#setParentTarget();
 
             // console.log(that.groups[name], that.groups[name].elt.clientHeight);
@@ -1319,11 +1310,11 @@ defaultVal, minVal, maxVal, precision need number`);
             case 'checkbox':
                 let boo = (Boolean(value) == true) && value != "false" && value != this.ctrlers[name].labelText.false;
                 try {
-                    // console.log(boo);
                     this.ctrlers[name].checked(boo);
+                    this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
                 } catch (err) {
                     this.ctrlers[name].elt.querySelector('input').checked = boo;
-                    this.ctrlers[name].elt.querySelector('label').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
+                    this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
                     console.log(`updating ${name} error, and clicked it`);
                 }
                 break;

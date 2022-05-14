@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/14 04:02:27"
+// Last modified: "2022/05/14 18:08:39"
 
 /** TODO
  * stick : 吸附到窗口/畫板
@@ -59,7 +59,7 @@ class PC {
 
         this.name = 'p5js_Ctrler';
         this.id = this.name;
-        this.version = '0.0.21';
+        this.version = '0.0.2.1';
         let existedDom = document.querySelectorAll(`[id*=${this.id}]`);
         if (existedDom.length > 0) {
             existedDom = [...existedDom].filter(dom => ['inner', 'header'].every(n => dom.id.indexOf(n) == -1));
@@ -791,13 +791,19 @@ defaultVal, minVal, maxVal, precision need number`);
         this.ctrlers[name].nameAnonymous = nameAnonymous;
 
         this.ctrlers[name].elt.style.display = 'flex';
-        this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        this.ctrlers[name].elt.oninput = _ => {
-            this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        };
-        this.ctrlers[name].elt.onchange = _ => {
-            this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        };
+        // this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
+        // this.ctrlers[name].elt.oninput = _ => {
+        //     this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
+        // };
+        // this.ctrlers[name].elt.onchange = _ => {
+        //     this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
+        // };
+
+        const updateLabel = () => {
+            this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[String(this.ctrlers[name].checked())];
+        }
+        this.ctrlers[name].elt.oninput = _ => { updateLabel(); };
+        this.ctrlers[name].elt.onchange = _ => { updateLabel(); };
 
         this.#initCtrler(name);
         return this.ctrlers[name];
@@ -1174,13 +1180,28 @@ defaultVal, minVal, maxVal, precision need number`);
             that.groupNames[groupName].mouseClicked(() => { });
             // console.log(that.groups[groupName].ctrlersList);
             that.groups[groupName].ctrlersList.map(ctrlerName => that.ctrlers[ctrlerName].disable());
+            return that.groups[groupName];
         };
         this.groups[groupName].enable = function () {
             that.groups[groupName].elt.classList.remove('hide');
             that.groups[groupName].elt.classList.remove('disable');
             that.groupNames[groupName].mouseClicked(groupFoldFn);
             that.groups[groupName].ctrlersList.map(ctrlerName => that.ctrlers[ctrlerName].enable());
+            return that.groups[groupName];
         };
+
+        this.groups[groupName].fold = function () {
+            that.foldGroup(groupName);
+            return that.groups[groupName];
+        }
+        this.groups[groupName].unfold = function () {
+            that.unfoldGroup(groupName);
+            return that.groups[groupName];
+        }
+
+        this.groups[groupName].ctrler = function (ctrlerName) {
+            return that.ctrlers[ctrlerName];
+        }
     };
     #groupCtrlerFn = function (groupName, fn) {
         let that = this;
@@ -1321,11 +1342,11 @@ defaultVal, minVal, maxVal, precision need number`);
             case 'checkbox':
                 let boo = (Boolean(value) == true) && value != "false" && value != this.ctrlers[name].labelText.false;
                 try {
-                    // console.log(boo);
                     this.ctrlers[name].checked(boo);
+                    this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
                 } catch (err) {
                     this.ctrlers[name].elt.querySelector('input').checked = boo;
-                    this.ctrlers[name].elt.querySelector('label').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
+                    this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
                     console.log(`updating ${name} error, and clicked it`);
                 }
                 break;
