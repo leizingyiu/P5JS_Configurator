@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/14 18:08:39"
+// Last modified: "2022/05/14 20:22:50"
 
 /** TODO
  * stick : 吸附到窗口/畫板
@@ -1202,6 +1202,11 @@ defaultVal, minVal, maxVal, precision need number`);
         this.groups[groupName].ctrler = function (ctrlerName) {
             return that.ctrlers[ctrlerName];
         }
+
+        this.groups[groupName].parent = function () {
+            return that;
+        }
+
     };
     #groupCtrlerFn = function (groupName, fn) {
         let that = this;
