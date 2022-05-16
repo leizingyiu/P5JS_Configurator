@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/14 20:22:50"
+// Last modified: "2022/05/16 02:34:23"
 
 /** TODO
  * stick : 吸附到窗口/畫板
@@ -83,6 +83,8 @@ class PC {
 
         this.#_parentTarget = this.ctrlersContainer;
         this.target = target;
+
+        this.type = 'p5js_ctrler';
 
         //设置外层容器
         this.mainContainer = this.target.createDiv();
@@ -1938,7 +1940,7 @@ defaultVal, minVal, maxVal, precision need number`);
             #${this.id}[${stickAttrName}*=left].autoHide,
             #${this.id}[${stickAttrName}*=right].autoHide
             {
-                padding: var(--unit-length) 0;
+                padding: var(--unit-length) 0!important;
             }
 
             #${this.id}[${stickAttrName}*=top].autoHide:hover,
@@ -1960,7 +1962,7 @@ defaultVal, minVal, maxVal, precision need number`);
             #${this.id}[${stickAttrName}*=top].autoHide #${this.id}_inner,
             #${this.id}[${stickAttrName}*=bottom].autoHide #${this.id}_inner
             {
-                max-height:0;
+                max-height:0!important;
                 max-width: var(--container-w)!important;
             }
         
@@ -1972,8 +1974,8 @@ defaultVal, minVal, maxVal, precision need number`);
             }
 
             #${this.id}[${stickAttrName}].autoHide:hover #${this.id}_inner{
-                max-height: var(--container-h);
-                max-width: var(--container-w);
+                max-height: var(--container-h)!important;
+                max-width: var(--container-w)!important;
             }
             
             `+ `
@@ -2075,13 +2077,10 @@ defaultVal, minVal, maxVal, precision need number`);
             this.mainContainer.elt.appendChild(style);
             let that = this;
             document.getElementById(elmnt.id + "_header").onmouseup = function (e) {
-                console.log(e);
                 let style = that.mainContainer.elt.style;
                 let top = style.getPropertyValue('top'), bottom = style.getPropertyValue('bottom');
                 let stick = that.mainContainer.elt.hasAttribute(stickAttrName);
-                console.log(top, bottom, stick);
                 if (_that.mousemove === false && that.mainContainer.elt.hasAttribute(stickAttrName)) {
-                    console.log('fold');
                     that.mainContainer.elt.classList.toggle('fold');
                 }
 
