@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/16 02:34:23"
+// Last modified: "2022/05/18 18:17:50"
 
 /** TODO
  * stick : 吸附到窗口/畫板
@@ -120,12 +120,12 @@ class PC {
         });
 
         //设置拖拽标签
-        const dragDiv = this.target.createDiv();
+        this.header = this.target.createDiv();
         const dragP = this.target.createP(this.id);
         dragP.style('color:#fff');
-        dragDiv.id(this.id + '_header');
-        dragDiv.parent(this.mainContainer);
-        dragP.parent(dragDiv);
+        this.header.id(this.id + '_header');
+        this.header.parent(this.mainContainer);
+        dragP.parent(this.header);
         this.#tagSetting(this.mainContainer.elt);
 
         if (this.settings.showToolsBoo == true) {        // 设置工具按钮容器
@@ -418,6 +418,7 @@ class PC {
                     #${this.id} div.group{
                         flex-direction:column!important;
                         transition:height var(--transition-time) ease;
+                        margin-top: 0.5em;
                     }
 
                     #${this.id} div.group.disable{
@@ -538,6 +539,7 @@ class PC {
 
         let container_h = this.ctrlersContainer.elt.clientHeight;
         if (this.settings.showToolsBoo == true) { container_h = this.toolsDiv.elt.clientHeight + container_h; }
+        container_h = Math.min(container_h, top.innerHeight - this.header.elt.clientHeight * 4);
         this.ctrlersContainer.elt.style.setProperty("--container-h", container_h + 'px');
 
 
@@ -639,10 +641,16 @@ class PC {
         if (name in this.ctrlers) {
             throw (`"${name}" :A ctrler with this name already exists`);
             return false;
+        } else if (typeof window[name] != 'undefined') {
+            console.error(`"${name}" :A variable with this name already exists`);
+            let beforeName = name;
+            name = this.#randomName();
+            console.log(`name ${beforeName}   has been renamed to ${name}`);
+            return name;
         } else if (illegalNameBoo) {
             let beforeName = name;
             name = this.#randomName();
-            console.log(`name ${beforeName} is not legal or empty, it has beem renamed to ${name}`);
+            console.log(`name ${beforeName} is not legal or empty, it has been renamed to ${name}`);
             return name;
         }
         return true;
@@ -802,7 +810,11 @@ defaultVal, minVal, maxVal, precision need number`);
         // };
 
         const updateLabel = () => {
-            this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[String(this.ctrlers[name].checked())];
+            let target = this.ctrlers[name].elt.querySelector('label span');
+            if (target == null) {
+                target = this.ctrlers[name].elt.querySelector('label');
+            }
+            target.innerText = this.ctrlers[name].labelText[String(this.ctrlers[name].checked())];
         }
         this.ctrlers[name].elt.oninput = _ => { updateLabel(); };
         this.ctrlers[name].elt.onchange = _ => { updateLabel(); };
@@ -1350,12 +1362,18 @@ defaultVal, minVal, maxVal, precision need number`);
                 let boo = (Boolean(value) == true) && value != "false" && value != this.ctrlers[name].labelText.false;
                 try {
                     this.ctrlers[name].checked(boo);
-                    this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
+                    this.ctrlers[name].elt.querySelector('label').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
                 } catch (err) {
                     this.ctrlers[name].elt.querySelector('input').checked = boo;
                     this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
                     console.log(`updating ${name} error, and clicked it`);
                 }
+                let target = this.ctrlers[name].elt.querySelector('label span');
+                if (target == null) {
+                    target = this.ctrlers[name].elt.querySelector('label');
+                }
+                target.innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
+
                 break;
             case 'select':
                 this.ctrlers[name].elt.querySelector(`[value="${value}"]`).selected = true;
