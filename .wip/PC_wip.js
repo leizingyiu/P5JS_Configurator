@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/05/18 18:17:50"
+// Last modified: "2022/06/06 15:18:57"
 
 /** TODO
  * stick : 吸附到窗口/畫板
@@ -28,7 +28,8 @@ class PC {
         checkbox_true_display: '✔',
         input_styling: false,
         name_space: 'p5js_ctrler',
-        latency_for_loading_local_data: 500
+        latency_for_loading_local_data: 500,
+        resize_rename: false
     }, target = window) {
         const defaultSettings = {
             updateWithCookieBoo: true,
@@ -46,7 +47,8 @@ class PC {
             checkbox_true_display: '✔',
             input_styling: false,
             name_space: 'p5js_ctrler',
-            latency_for_loading_local_data: 50
+            latency_for_loading_local_data: 50,
+            resize_rename: false
         };
 
         Object.keys(defaultSettings).map((k) => {
@@ -59,7 +61,7 @@ class PC {
 
         this.name = 'p5js_Ctrler';
         this.id = this.name;
-        this.version = '0.0.2.1';
+        this.version = '0.0.3.1';
         let existedDom = document.querySelectorAll(`[id*=${this.id}]`);
         if (existedDom.length > 0) {
             existedDom = [...existedDom].filter(dom => ['inner', 'header'].every(n => dom.id.indexOf(n) == -1));
@@ -507,25 +509,20 @@ class PC {
         Object.keys(this.nameCol).map(name => this.nameCol[name].style('max-width: unset;'));
 
         let nameColWidthArr = Object.keys(this.nameCol).filter(
-            name => this.ctrlers[name].nameAnonymous == false && (!this.ctrlers[name].hasOwnProperty('rename'))
+            name => this.ctrlers[name].nameAnonymous == false &&
+                (this.settings.resize_rename == false ? (!this.ctrlers[name].hasOwnProperty('rename')) : true)
         ).map(
             name => this.nameCol[name].elt.clientWidth
         ).sort(
             (a, b) => b - a
         );
-        let nameColWidth = nameColWidthArr[0] + 1;
-        this.ctrlersContainer.elt.style.setProperty("--namecol-w", nameColWidth + 'px');
+        if (nameColWidthArr.length != 0) {
+            let nameColWidth = nameColWidthArr[0] + 0;
+            this.ctrlersContainer.elt.style.setProperty("--namecol-w", nameColWidth + 'px');
 
-        Object.keys(this.nameCol).map(name => this.nameCol[name].style('max-width: var(--namecol-w);'));
+            Object.keys(this.nameCol).map(name => this.nameCol[name].style('max-width: var(--namecol-w);'));
+        }
 
-
-        // console.log(nameColWidthArr.join(','), Object.keys(this.ctrlers).pop());
-        // [...Object.values(this.ctrlerDivs)].map(div => {
-        //     [...div.elt.querySelectorAll('*')].map(d => {
-        //         // if (!d.classList.contains('ctrlerName')) { d.style.display = 'flex'; }
-        //         d.style.color = this.textcolor;
-        //     })
-        // });
 
         Object.keys(this.ctrlers).map(name => this.ctrlers[name].elt.style.setProperty('flex-grow', '0'));
         let ctrlersDisplayWidths = Object.values(this.ctrlers).map(v => v.elt.clientWidth + v.elt.offsetLeft).sort((a, b) => b - a);
@@ -533,7 +530,7 @@ class PC {
         this.#_scrollBarWidth = this.#getScrollBarWidth();
         let container_w = Math.min(this.ctrlerwidth, ctrlersDisplayWidth) + this.#_scrollBarWidth;
         if (this.settings.showToolsBoo == true) { container_w = Math.max(this.toolsDiv.elt.clientWidth, container_w); }
-        this.ctrlersContainer.elt.style.setProperty("--container-w", container_w + 2 + 'px');
+        this.ctrlersContainer.elt.style.setProperty("--container-w", container_w + 0 + 'px');
         Object.keys(this.ctrlers).map(name => this.ctrlers[name].elt.style.removeProperty('flex-grow'));
 
 
@@ -544,15 +541,7 @@ class PC {
 
 
 
-        // this.ctrlersContainer.elt.style.setProperty("--container-w",     this.ctrlersContainer.elt.clientWidth + 'px');
-        // this.ctrlersContainer.elt.style.setProperty("--container-w", Math.max(this.ctrlerwidth, Math.max(ctrlersDisplayWidth, this.settings.showToolsBoo == true ? this.toolsDiv.elt.clientWidth : 0)) + this.#_scrollBarWidth + 'px');
 
-        //  console.log(ctrlersDisplayWidths, ctrlersDisplayWidth, this.#_scrollBarWidth, container_w, this.settings.showToolsBoo == true ? this.toolsDiv.elt.clientWidth : 0);
-
-
-        // if(this.mainContainer.elt.clientHeight>window.innerHeight*0.85){
-        //     this.stick();
-        // }
 
     };
 
@@ -630,7 +619,7 @@ class PC {
             this.valueCol[name].style('user-select:none');
         }
 
-        Object.keys(this.groups).map(groupname => this.#groupHeightUpdate(groupname))
+        Object.keys(this.groups).map(groupname => this.#updateGroupHeight(groupname))
     };
     #checkNameLegal(name) {
         return !name || Boolean(name) == false || typeof name == 'undefined' || name === false || name == null || typeof name == 'string' && !name[0].match(/[a-zA-Z_$]/)
@@ -801,25 +790,32 @@ defaultVal, minVal, maxVal, precision need number`);
         this.ctrlers[name].nameAnonymous = nameAnonymous;
 
         this.ctrlers[name].elt.style.display = 'flex';
-        // this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        // this.ctrlers[name].elt.oninput = _ => {
-        //     this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        // };
-        // this.ctrlers[name].elt.onchange = _ => {
-        //     this.ctrlers[name].elt.querySelector('label').innerText = labelText[this.ctrlers[name].checked() ? 0 : 1];
-        // };
 
         const updateLabel = () => {
-            let target = this.ctrlers[name].elt.querySelector('label span');
-            if (target == null) {
-                target = this.ctrlers[name].elt.querySelector('label');
+
+            let labelInside = this.ctrlers[name].elt.querySelectorAll('label *');
+            let labelSpan = this.ctrlers[name].elt.querySelectorAll('label>span');
+            let labelSpanInside = this.ctrlers[name].elt.querySelectorAll('label>span *');
+            let target;
+
+            switch (true) {
+                case labelInside.length != 0 && labelSpan.length != 0 && labelSpan.length == 1 && labelSpanInside.length == 0:
+                    target = labelSpan[0];
+                    break;
+                case labelInside.length == 0:
+                    target = this.ctrlers[name].elt.querySelector('label');
+                    break;
+                default:
+                    throw ('checkbox error');
             }
             target.innerText = this.ctrlers[name].labelText[String(this.ctrlers[name].checked())];
         }
         this.ctrlers[name].elt.oninput = _ => { updateLabel(); };
         this.ctrlers[name].elt.onchange = _ => { updateLabel(); };
 
+
         this.#initCtrler(name);
+
         return this.ctrlers[name];
     };
 
@@ -988,30 +984,8 @@ defaultVal, minVal, maxVal, precision need number`);
         return this.ctrlers[name];
     };
     #updateTextareaHeight = (textareaElt) => {
-        const taStyle = getComputedStyle(textareaElt, null);
-
-        const div = document.createElement('div');
-        div.innerText = textareaElt.value;
-        div.innerText = div.innerText.match(/[\n\r]$/) ? div.innerText + '_' : div.innerText;
-
-        let divStyleText = '';
-        let styleAttrsArr = ["font-size", "color", "height", "max-height", "margin", "margin-right", "flex-grow", "position", "vertical-align", "transition", "writing-mode", "font-family", "text-rendering", "color", "letter-spacing", "word-spacing", "line-height", "text-transform", "text-indent", "text-shadow", "display", "text-align", "appearance", "-webkit-rtl-ordering", "resize", "cursor", "white-space", "overflow-wrap", "background-color", "column-count", "margin", "border-width", "border-style", "border-color", "border-image", "padding"];
-
-        [...new Set(styleAttrsArr)].map(s => {
-            if (s.indexOf('height') != -1) { return }
-            divStyleText += (s == 'overflow-wrap' ? 'word-break' : s) + ':' + taStyle.getPropertyValue(s) + ';';
-        });
-
-        div.style.cssText = divStyleText;
-        div.style.width = textareaElt.clientWidth + 'px';
-        div.style.position = 'absolute';
-        div.style.top = 0, div.style.left = 0;
-
-        document.body.appendChild(div);
-        textareaElt.style.height = 'max(' + div.clientHeight + 'px , 2.5em )';
-        textareaElt.style.maxHeight = '80vh';
-
-        document.body.removeChild(div);
+        textareaElt.style.height = '100px';
+        textareaElt.style.height = textareaElt.scrollHeight + 'px';
     };
 
     fileinput(name = "p5js_ctrler_fileinput", fxn = () => { }) {
@@ -1237,7 +1211,7 @@ defaultVal, minVal, maxVal, precision need number`);
             // that.groups[name].elt.style.height = 'unset';
             // that.groups[name].elt.style.height = String(that.groups[name].elt.clientHeight) + 'px';
 
-            that.#groupHeightUpdate(groupName);
+            that.#updateGroupHeight(groupName);
 
             this.ctrlersList.push(ctrlerResult.name);
             // console.log('name',groupName,'\nthis',this,'\nthat',that,
@@ -1251,10 +1225,14 @@ defaultVal, minVal, maxVal, precision need number`);
             return this;
         }
     };
-    #groupHeightUpdate(name) {
+    #updateGroupHeight(name) {
 
-        this.groups[name].elt.style.height = 'unset';
-        this.groups[name].elt.style.height = String(this.groups[name].elt.clientHeight) + 'px';
+        this.groups[name].elt.style.height = '100px';
+        let overflowY = this.groups[name].elt.style.overflowY;
+        this.groups[name].elt.style.overflowY = 'scroll';
+
+        this.groups[name].elt.style.height = String(this.groups[name].elt.scrollHeight) + 'px';
+        this.groups[name].elt.style.overflowY = overflowY;
 
     };
     #multiParaCompat_1(arg, defaultArr, fxName, that = this) { /** 原函数需要一个参数，兼容多参数，直接多任务循环*/
@@ -1340,6 +1318,7 @@ defaultVal, minVal, maxVal, precision need number`);
         return false;
     }
     update(name, value) {
+
         let multiparaCheck = this.#multiParaCompat_2([...arguments], 'update');
         if (multiparaCheck === 0) {
             throw ('update(name,value) require name and value,or a Object/Array contain name and value');
@@ -1362,18 +1341,10 @@ defaultVal, minVal, maxVal, precision need number`);
                 let boo = (Boolean(value) == true) && value != "false" && value != this.ctrlers[name].labelText.false;
                 try {
                     this.ctrlers[name].checked(boo);
-                    this.ctrlers[name].elt.querySelector('label').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
                 } catch (err) {
                     this.ctrlers[name].elt.querySelector('input').checked = boo;
-                    this.ctrlers[name].elt.querySelector('label span').innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
                     console.log(`updating ${name} error, and clicked it`);
                 }
-                let target = this.ctrlers[name].elt.querySelector('label span');
-                if (target == null) {
-                    target = this.ctrlers[name].elt.querySelector('label');
-                }
-                target.innerText = this.ctrlers[name].labelText[this.ctrlers[name].checked()];
-
                 break;
             case 'select':
                 this.ctrlers[name].elt.querySelector(`[value="${value}"]`).selected = true;
@@ -1481,7 +1452,7 @@ defaultVal, minVal, maxVal, precision need number`);
                 this.ctrlers[name].rename = displayname;
                 let groupname = this.ctrlerDivs[name].parent().getAttribute('groupname');
                 if (groupname) {
-                    this.#groupHeightUpdate(groupname);
+                    this.#updateGroupHeight(groupname);
                 }
             }
         }
@@ -1687,7 +1658,11 @@ defaultVal, minVal, maxVal, precision need number`);
                 if (this.ctrlers[k].type == 'fileinput' || this.ctrlers[k].elt.getAttribute('disable') == true) {
                     return;
                 }
-                this.update(k, v);
+                if (this.ctrlers[k].type == 'a') {
+                    this.update(k, decodeURIComponent(v));
+                } else {
+                    this.update(k, v);
+                }
             }
             // cookie[k] = v;
         });
@@ -1705,7 +1680,12 @@ defaultVal, minVal, maxVal, precision need number`);
                 if (this.ctrlers[k].type == 'fileinput' || this.ctrlers[k].elt.getAttribute('disable') == true) {
                     return;
                 }
-                document.cookie = `${k}=${this.getCtrlerVal(k)}; ` + 'SameSite=Lax;';
+                if (this.ctrlers[k].type == 'a') {
+
+                    document.cookie = `${k}=${encodeURIComponent(this.getCtrlerVal(k))}; ` + 'SameSite=Lax;';
+                } else {
+                    document.cookie = `${k}=${this.getCtrlerVal(k)}; ` + 'SameSite=Lax;';
+                }
             });
         }
     };
