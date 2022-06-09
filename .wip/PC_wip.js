@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/06/09 18:53:36"
+// Last modified: "2022/06/10 00:47:15"
 
 /** TODO
  * stick : 吸附到窗口/畫板
@@ -10,7 +10,7 @@
  * 
  * ctrl width 寬度顯示邏輯優化
  */
- class PC {
+class PC {
 
     constructor(settings = {
         updateWithCookieBoo: true,
