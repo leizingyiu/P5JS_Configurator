@@ -1,5 +1,5 @@
 // Created: 2022/02/27 01:20:00
-// Last modified: "2022/06/06 15:18:57"
+// Last modified: "2022/06/09 18:53:36"
 
 /** TODO
  * stick : 吸附到窗口/畫板
@@ -10,7 +10,7 @@
  * 
  * ctrl width 寬度顯示邏輯優化
  */
-class PC {
+ class PC {
 
     constructor(settings = {
         updateWithCookieBoo: true,
@@ -536,7 +536,7 @@ class PC {
 
         let container_h = this.ctrlersContainer.elt.clientHeight;
         if (this.settings.showToolsBoo == true) { container_h = this.toolsDiv.elt.clientHeight + container_h; }
-        container_h = Math.min(container_h, top.innerHeight - this.header.elt.clientHeight * 4);
+        // container_h = Math.min(container_h, top.innerHeight - this.header.elt.clientHeight * 4);
         this.ctrlersContainer.elt.style.setProperty("--container-h", container_h + 'px');
 
 
@@ -1336,6 +1336,14 @@ defaultVal, minVal, maxVal, precision need number`);
             return false;
         }
 
+        if (
+            [... this.ctrlerDivs[name].elt.classList].includes('disable') ||
+            this.ctrlers[name].elt.getAttribute('disabled') != null
+        ) {
+            console.info(`ctrler named ${name} has been disabled and will not be updated`);
+            return this;
+        }
+
         switch (this.ctrlers[name].type) {
             case 'checkbox':
                 let boo = (Boolean(value) == true) && value != "false" && value != this.ctrlers[name].labelText.false;
@@ -1356,12 +1364,16 @@ defaultVal, minVal, maxVal, precision need number`);
                     if (before == after) { throw ('the selected does not work.'); }
                 } catch (err) {
                     this.ctrlers[name].elt.querySelector(`[value="${value}"]`).click();
-                    console.log(`updating ${name} error, and clicked it`);
+                    console.info(`updating ${name} error, and clicked it`);
                 };
                 break;
             case 'a':
                 this.ctrlers[name].href = value;
                 this.ctrlers[name].elt.href = value;
+                break;
+
+            case 'color':
+                this.ctrlers[name].elt.value = '#' + color(value).levels.map(i => ('0' + i.toString(16)).slice(-2)).join('').slice(0, 6);
                 break;
 
             default:
