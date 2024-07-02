@@ -1,0 +1,113 @@
+<!-- 
+// Created: 2022/03/07 16:13:00
+// Last modified: "2023/11/06 16:24:30"
+ -->
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PC - p5js Ctrler - by leizingyiu</title>
+  <link rel="stylesheet" type="text/css" href="./style/style.css">
+
+  <script src="./libraries/audioworklet-polyfill.js">
+    /*
+    https://unpkg.com/@free-side/audioworklet-polyfill/dist/audioworklet-polyfill.js
+    如果出现sound库在https可以加载，http不能加载，就用这个解决
+    If the sound library can be loaded at https but cannot be loaded at http, use this solution
+    https://discourse.processing.org/t/p5-sound-on-google-chrome-p5-sound-js-3191-uncaught-in-promise-typeerror-cannot-read-property-addmodule-of-undefined/29939
+    https://github.com/processing/p5.js-sound/issues/454
+    https://github.com/processing/p5.js-sound/issues/409
+    */
+  </script>
+
+
+  <script src="./libraries/p5.min.js"></script>
+  <script src="./libraries/p5.sound.min.js"></script>
+
+  <script>
+    enMdPath = './doc/README_en.md',
+      cnMdPath = './doc/README_cn.md',
+      mdtempletsPath = './doc/mdTemplets'
+  </script>
+
+
+
+
+</head>
+
+<body style="min-height:100vh;">
+  <!-- <p id="readme" class="markdown-body" data-mdFile='./README_en.md'></p> -->
+
+  <script src="./util/util.js"></script>
+  <!-- <script src="./PC.js"></script> -->
+  <!-- <script src="./PC.js"></script> -->
+  <script src="./PC testing.js"></script>
+  <script src="./PC_addons.js"></script>
+
+  <!-- <script src="./sketch.js"></script> -->
+  <script src="./sketch_none_module.js"></script>
+
+
+  <link rel="stylesheet" href="./libraries/markdown.css">
+
+  <!-- <script type="text/javascript" src="//cdn.jsdelivr.net/npm/marked/marked.min.js"></script> -->
+  <script type="text/javascript" src="./libraries/marked.min.js"></script>
+
+  <!-- <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/atom-one-light.min.css"> -->
+  <link rel="stylesheet" href="./libraries/atom-one-light.min.css">
+
+  <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script> -->
+  <script src="./libraries/highlight.min.js"></script>
+
+  <script src="./util/loadMarkdownFile.js"></script>
+
+
+  <script>
+    // import {sketch} from './sketch.js'
+    //  import {PC} from './PC.js';
+
+    // let p=   new p5(sketch,document.body);
+
+    // setTimeout(()=>{
+
+    // },1000);
+
+    let runTime = 0;
+    let tempDraw = window.draw;
+    window.draw = function () {
+
+      if (runTime == 0) {
+        let _pc = new PC({
+          ctrler_width: 400,
+          updateWithUrlBoo: false,
+          updateWithCookieBoo: false,
+          showToolsBoo: false
+        }, window);
+        console.log();
+        _pc.radio('script_type', ['normal', 'module'], (e) => {
+          if (script_type == 'normal' && (!String(window.location).match('index_none_module.html'))) {
+            window.location.href = './index_none_module.html';
+          } else if (script_type == 'module' && (String(window.location).match('index_none_module.html'))) {
+            window.location.href = './index.html';
+          }
+        });
+        _pc.update('script_type', 'normal');
+        _pc.a('moduleTypeSource', './sketch_none_module.js', 'script in module type')
+        _pc.stick('top');
+        runTime = 1;
+      }
+
+      tempDraw();
+    }
+
+  </script>
+  <script>
+    loadReadmeFile();
+  </script>
+
+</body>
+
+</html>

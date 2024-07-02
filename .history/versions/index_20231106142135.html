@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>versions of p5js_ctrler - by leizingyiu </title>
+    <script>
+        mdtempletsPath = '../doc/mdTemplets/';
+    </script>
+</head>
+
+<body>
+    <ol id="versions">
+    </ol>
+
+    <script>
+        const versions = {
+            '0.0.1': {
+                'title': '0.0.1',
+                'p': '实现最基础的功能，基本对应 p5js 的 DOM 部分的控制器',
+                'a': {
+                    'text': '查看功能示例页面',
+                    'link': './index_0.0.1.html'
+                }
+            },
+            '0.0.2': {
+                'title': '0.0.2',
+                'p': '添加编组功能(group)、链式风格功能、折叠功能(click to fold)、自动隐藏功能(stick)、标题更改功能(title)、备注文本功能(alt)，超链接功能；\n 示例中添加“添加控制器”、添加以模块引入sketch脚本的范例。',
+                'a': {
+                    'text': '查看功能示例页面',
+                    'link': './index_0.0.2.html'
+                }
+            },
+        }
+
+        const list = document.querySelector('ol#versions');
+        let itemsOuterHTML = '';
+        Object.keys(versions).map(k => {
+            let item = document.createElement('li');
+            let h2 = document.createElement('h2');
+            let p = document.createElement('p');
+            let a = document.createElement('a');
+            let canvasContainer = document.createElement('div');
+            h2.innerText = versions[k].title;
+            p.innerText = versions[k].p;
+            a.innerText = versions[k].a.text;
+            a.href = versions[k].a.link;
+            a.classList.add('link');
+            canvasContainer.id = 'canvas' + k;
+            canvasContainer.style.height = (Number(document.body.clientWidth) * 0.8 * (9 / 16)) + 'px';
+            setTimeout(() => {
+                import('./sketch_' + k + '.js').then(module => {
+                    console.log(module);
+                    new p5(module.sketch, document.getElementById('canvas' + k));
+
+                });
+            }, 100);
+            [h2, p, a, canvasContainer].map(d => {
+                item.appendChild(d);
+            });
+            itemsOuterHTML += item.outerHTML;
+        });
+
+        list.insertAdjacentHTML('afterbegin', itemsOuterHTML);
+    </script>
+    <style>
+        body {
+            margin: 0 auto;
+            max-width: 80vw;
+            font-family: sans-serif;
+        }
+
+        #versions a.link {
+            display: block;
+        }
+    </style>
+    <script src="../libraries/audioworklet-polyfill.js"></script>
+    <script src="../libraries/p5.min.js"></script>
+    <script src="../libraries/p5.sound.min.js"></script>
+
+</body>
+
+</html>
